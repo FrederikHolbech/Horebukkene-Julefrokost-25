@@ -555,6 +555,11 @@
         title: "Fysiologi Quiz",
         description: "Svar på 5 svære spørgsmål om fysiologi! 🧠",
         type: "physiology-quiz"
+      },
+      {
+        title: "Snyd Værten",
+        description: "Drik vand eller sambuca - kan værten gætte det? 🥃",
+        type: "trick-host"
       }
     ];
 
@@ -891,6 +896,9 @@
           break;
         case "physiology-quiz":
           renderPhysiologyQuizTask(content);
+          break;
+        case "trick-host":
+          renderTrickHostTask(content);
           break;
         default:
           content.innerHTML = `
@@ -1283,7 +1291,87 @@
       document.getElementById("taskStatus").textContent = "I gang";
     }
 
-    // 5. ROULETTE TASK
+    // 5. TRICK HOST TASK
+    function renderTrickHostTask(container) {
+      let verified = false;
+
+      function render() {
+        container.innerHTML = `
+          <div style="text-align: center;">
+            <div style="font-size: 24px; font-weight: 600; margin-bottom: 30px; line-height: 1.4;">
+              Snyd Værten! 🥃
+            </div>
+            
+            <div style="font-size: 18px; color: var(--text); margin: 30px 20px; line-height: 1.6; max-width: 600px; margin-left: auto; margin-right: auto;">
+              <p style="margin-bottom: 16px;"><strong>Sådan spiller I:</strong></p>
+              <p style="margin-bottom: 12px;">1. Vælg en spiller der skal drikke</p>
+              <p style="margin-bottom: 12px;">2. Spilleren vælger HEMMELIGT mellem vand 💧 eller sambuca 🥃</p>
+              <p style="margin-bottom: 12px;">3. Spilleren drikker shottet og prøver at holde masken!</p>
+              <p style="margin-bottom: 12px;">4. Værten skal gætte hvad der blev drukket</p>
+              <p style="margin-bottom: 12px;">5. Når værten har gættet, indtaster værten PIN-koden</p>
+            </div>
+            
+            <div style="font-size: 64px; margin: 40px 0;">
+              💧 eller 🥃 ?
+            </div>
+            
+            ${!verified ? `
+              <div style="margin-top: 40px;">
+                <div style="font-size: 18px; color: var(--muted); margin-bottom: 20px;">
+                  Vært: Har du gættet rigtigt? Indtast PIN for at bekræfte
+                </div>
+                <input 
+                  type="password" 
+                  id="trickHostPin" 
+                  placeholder="Indtast PIN..." 
+                  style="width: 200px; padding: 16px; font-size: 18px; border: 2px solid var(--border); border-radius: 12px; background: var(--card); color: var(--text); text-align: center; margin-bottom: 12px;"
+                  onkeypress="if(event.key==='Enter'){event.preventDefault();verifyTrickHost();}"
+                >
+                <div id="trickHostError" style="color: var(--bad); font-size: 14px; min-height: 20px; margin-bottom: 12px;"></div>
+                <button class="btn primary" onclick="verifyTrickHost()">Bekræft ✓</button>
+              </div>
+            ` : `
+              <div style="margin-top: 40px;">
+                <div style="font-size: 28px; color: var(--ok); margin-bottom: 20px;">
+                  ✅ Værten har godkendt!
+                </div>
+                <button class="btn primary" onclick="trickHostFinish()">Fortsæt →</button>
+              </div>
+            `}
+          </div>
+        `;
+        if (!verified) {
+          setTimeout(() => document.getElementById("trickHostPin")?.focus(), 100);
+        }
+      }
+
+      window.verifyTrickHost = () => {
+        const input = document.getElementById("trickHostPin")?.value || '';
+        const errorDiv = document.getElementById("trickHostError");
+
+        if (input === PIN) {
+          verified = true;
+          render();
+        } else {
+          errorDiv.textContent = "Forkert PIN - prøv igen";
+          document.getElementById("trickHostPin").value = "";
+          setTimeout(() => {
+            errorDiv.textContent = "";
+          }, 2000);
+        }
+      };
+
+      window.trickHostFinish = () => {
+        container.innerHTML = '<div style="text-align: center; padding: 40px;"><div style="font-size: 32px; margin-bottom: 16px;">🥃</div><div style="font-size: 24px; font-weight: 600;">Snyd Værten gennemført!</div></div>';
+        document.getElementById("taskStatus").textContent = "✅ Gennemført";
+        completeTask(currentTaskIndex);
+      };
+
+      render();
+      document.getElementById("taskStatus").textContent = "Klar til at snyde!";
+    }
+
+    // 6. ROULETTE TASK
     function renderRouletteTask(container) {
       let spinning = false;
       let result = 0;
