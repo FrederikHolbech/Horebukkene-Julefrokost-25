@@ -528,12 +528,14 @@
     }
 
     function editScore(idx) {
+      console.log('editScore called for team:', idx);
       currentTeamIndex = idx;
       editType = 'score';
       showPinModal("Indtast PIN for at ændre point");
     }
 
     function editTeamName(idx) {
+      console.log('editTeamName called for team:', idx);
       currentTeamIndex = idx;
       editType = 'name';
       showPinModal("Indtast PIN for at ændre holdnavn");
