@@ -1024,10 +1024,9 @@
       window.emojiCheckGuess = () => {
         const guess = document.getElementById("songGuess")?.value.toLowerCase().trim() || '';
         const answer = songs[currentS].answer.toLowerCase();
-        const title = songs[currentS].title.toLowerCase();
 
-        // Check if guess contains key words or matches title
-        if (guess && (answer.includes(guess) || guess.includes(answer) || title.includes(guess) || guess.includes(title))) {
+        // Check if guess matches the answer exactly
+        if (guess === answer) {
           answered = true;
           render();
         } else {
@@ -1043,9 +1042,7 @@
             }, 1500);
           }
         }
-      };
-
-      window.emojiNext = () => { if (currentS < songs.length - 1) { currentS++; answered = false; render(); } };
+      }; window.emojiNext = () => { if (currentS < songs.length - 1) { currentS++; answered = false; render(); } };
       window.emojiFinish = () => {
         container.innerHTML = '<div style="text-align: center; padding: 40px;"><div style="font-size: 32px; margin-bottom: 16px;">🎵</div><div style="font-size: 24px; font-weight: 600;">Alle sange gennemgået!</div></div>';
         document.getElementById("taskStatus").textContent = "✅ Gennemført";
