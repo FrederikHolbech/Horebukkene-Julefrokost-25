@@ -426,7 +426,7 @@
       <input type="text" id="editInput" placeholder="" />
       <div class="modal-buttons">
         <button class="btn" onclick="closeEditModal()">Annuller</button>
-        <button class="btn" id="editOkBtn">Gem</button>
+        <button class="btn" id="editOkBtn" onclick="saveEdit()">Gem</button>
       </div>
     </div>
   </div>
@@ -570,6 +570,10 @@
 
     function showEditModal(title, currentValue, type) {
       console.log('showEditModal called:', title, currentValue, type);
+
+      // Store editType BEFORE showing modal, so it persists
+      editType = type;
+
       const editModal = document.getElementById("editModal");
       const editInput = document.getElementById("editInput");
 
@@ -584,7 +588,7 @@
       }
 
       editModal.classList.add("show");
-      console.log('Edit modal should be visible now');
+      console.log('Edit modal should be visible now, editType is:', editType);
 
       setTimeout(() => {
         editInput.focus();
