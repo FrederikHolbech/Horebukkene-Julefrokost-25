@@ -775,9 +775,26 @@
       currentAction = () => {
         if (confirm("Er du sikker på at du vil nulstille alle opgaver?")) {
           completedTasks = [];
+
+          // Clear all team task tracking
+          teams.forEach((team, index) => {
+            localStorage.removeItem(`team_${index}_tasks`);
+          });
+
+          // Clear all shot roulette completions and device associations
+          const keysToRemove = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && (key.startsWith("shot_played_") || key.startsWith("device_team_"))) {
+              keysToRemove.push(key);
+            }
+          }
+          keysToRemove.forEach(key => localStorage.removeItem(key));
+
           saveData();
           renderTaskGrid();
           showTasksOverview();
+          updateTeamProgressTracker();
         }
       };
       currentTeamIndex = null;
