@@ -1,309 +1,397 @@
 <!doctype html>
 <html lang="da">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>HOREBUKKENE</title>
+  <title>HOREBUKKENE - Scoreboard</title>
   <style>
-    :root{
-      --bg:#0b0d12; --card:rgba(255,255,255,.06); --text:rgba(255,255,255,.92);
-      --muted:rgba(255,255,255,.65); --border:rgba(255,255,255,.12); --accent:#7c5cff;
-      --ok:#24d18f; --bad:#ff5c7a;
-      --shadow:0 20px 60px rgba(0,0,0,.35);
+    :root {
+      --bg: #0b0d12;
+      --card: rgba(255, 255, 255, .06);
+      --text: rgba(255, 255, 255, .92);
+      --muted: rgba(255, 255, 255, .65);
+      --border: rgba(255, 255, 255, .12);
+      --accent: #7c5cff;
+      --ok: #24d18f;
+      --bad: #ff5c7a;
+      --shadow: 0 20px 60px rgba(0, 0, 0, .35);
     }
-    *{box-sizing:border-box}
-    body{
-      margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      color:var(--text);
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text);
       background:
-        radial-gradient(800px 400px at 20% 0%, rgba(124,92,255,.25), transparent 60%),
-        radial-gradient(800px 400px at 80% 10%, rgba(0,255,209,.12), transparent 60%),
+        radial-gradient(800px 400px at 20% 0%, rgba(124, 92, 255, .25), transparent 60%),
+        radial-gradient(800px 400px at 80% 10%, rgba(0, 255, 209, .12), transparent 60%),
         var(--bg);
-      min-height:100vh;
-      display:flex; align-items:center; justify-content:center;
-      padding:24px;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
     }
-    .wrap{width:min(900px,100%);}
-    .card{
-      border:1px solid var(--border);
-      background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
-      border-radius:18px;
-      box-shadow:var(--shadow);
-      padding:20px;
+
+    .wrap {
+      width: min(900px, 100%);
+    }
+
+    .card {
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255, 255, 255, .08), rgba(255, 255, 255, .03));
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 32px;
       backdrop-filter: blur(12px);
     }
 
-    header{display:flex; flex-direction:column; gap:12px; margin-bottom:14px;}
-    .brand{
-      font-size:42px;
-      line-height:1.0;
-      letter-spacing:-0.03em;
-      margin:0;
-      text-transform:uppercase;
+    .brand {
+      font-size: 48px;
+      line-height: 1.0;
+      letter-spacing: -0.03em;
+      margin: 0 0 32px 0;
+      text-transform: uppercase;
+      text-align: center;
     }
-    .meta{display:flex; gap:10px; flex-wrap:wrap; align-items:center; color:var(--muted); font-size:13px;}
-    .pill{border:1px solid var(--border); background:rgba(0,0,0,.12); padding:6px 10px; border-radius:999px;}
 
-    .bar{height:10px; background:rgba(255,255,255,.08); border:1px solid var(--border); border-radius:999px; overflow:hidden;}
-    .bar > div{height:100%; width:0%; background:rgba(124,92,255,.75); transition:width .25s ease;}
-
-    .q{margin-top:10px; font-size:20px; line-height:1.35;}
-    .hint{margin-top:8px; color:var(--muted); font-size:13px;}
-
-    .row{display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; align-items:center;}
-    .input{
-      flex:1;
-      min-width: 220px;
-      border:1px solid var(--border);
-      background:var(--card);
-      color:var(--text);
-      padding:12px 12px;
-      border-radius:14px;
-      outline:none;
-      backdrop-filter: blur(10px);
-      font-size:16px;
+    .scoreboard {
+      display: grid;
+      gap: 16px;
+      margin-bottom: 24px;
     }
-    .btn{
-      border:1px solid var(--border);
-      background:rgba(0,0,0,.12);
-      color:var(--text);
-      padding:10px 12px;
-      border-radius:12px;
-      cursor:pointer;
-      white-space:nowrap;
-    }
-    .btn.primary{background:rgba(124,92,255,.22); border-color:rgba(124,92,255,.45)}
-    .btn:disabled{opacity:.5; cursor:not-allowed}
 
-    .feedback{margin-top:10px; min-height:22px; font-size:14px; color:var(--muted);}
-    .feedback.ok{color:rgba(36,209,143,.95)}
-    .feedback.bad{color:rgba(255,92,122,.95)}
-
-    .nav{display:flex; justify-content:space-between; gap:10px; margin-top:16px; flex-wrap:wrap;}
-    .result{
-      margin-top:12px;
-      border:1px dashed var(--border);
-      border-radius:14px;
-      padding:12px;
-      color:var(--muted);
-      display:none;
+    .team {
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, .04);
+      border-radius: 14px;
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all .2s;
     }
-    .result.show{display:block;}
-    .small{font-size:12px; color:var(--muted);}
+
+    .team:hover {
+      background: rgba(255, 255, 255, .06);
+      border-color: rgba(124, 92, 255, .3);
+    }
+
+    .team-name {
+      font-size: 28px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 8px 12px;
+      border-radius: 8px;
+      transition: background .2s;
+    }
+
+    .team-name:hover {
+      background: rgba(255, 255, 255, .08);
+    }
+
+    .team-score {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .score-display {
+      font-size: 42px;
+      font-weight: 700;
+      color: var(--accent);
+      min-width: 80px;
+      text-align: center;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 8px;
+      transition: background .2s;
+    }
+
+    .score-display:hover {
+      background: rgba(124, 92, 255, .15);
+    }
+
+    .score-btn {
+      width: 40px;
+      height: 40px;
+      border: 1px solid var(--border);
+      background: rgba(0, 0, 0, .2);
+      color: var(--text);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 20px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .2s;
+    }
+
+    .score-btn:hover {
+      background: rgba(124, 92, 255, .3);
+      border-color: var(--accent);
+    }
+
+    .score-btn:active {
+      transform: scale(0.95);
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 32px;
+    }
+
+    .btn {
+      border: 1px solid var(--border);
+      background: rgba(0, 0, 0, .12);
+      color: var(--text);
+      padding: 12px 20px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 15px;
+      transition: all .2s;
+    }
+
+    .btn:hover {
+      background: rgba(124, 92, 255, .2);
+      border-color: rgba(124, 92, 255, .4);
+    }
+
+    /* Modal for PIN */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, .7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .modal.show {
+      display: flex;
+    }
+
+    .modal-content {
+      background: linear-gradient(180deg, rgba(255, 255, 255, .12), rgba(255, 255, 255, .06));
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 32px;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: var(--shadow);
+    }
+
+    .modal h2 {
+      margin: 0 0 16px 0;
+      font-size: 24px;
+    }
+
+    .modal input {
+      width: 100%;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 18px;
+      text-align: center;
+      letter-spacing: 4px;
+      margin-bottom: 16px;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .modal-buttons .btn {
+      flex: 1;
+    }
+
+    .error-msg {
+      color: var(--bad);
+      font-size: 14px;
+      margin-top: -8px;
+      margin-bottom: 12px;
+      text-align: center;
+    }
   </style>
 </head>
+
 <body>
   <div class="wrap">
     <div class="card">
-      <header>
-        <h1 class="brand">HOREBUKKENE</h1>
+      <h1 class="brand">🎄 HOREBUKKENE 🎄</h1>
 
-        <div class="meta">
-          <span class="pill" id="counter">1/15</span>
-          <span class="pill" id="score">Score: 0</span>
-          <span class="pill" id="status">Skriv svaret for at gå videre</span>
-        </div>
+      <div class="scoreboard" id="scoreboard"></div>
 
-        <div class="bar" aria-label="progress">
-          <div id="barFill"></div>
-        </div>
-        <div class="small" id="barText">0% færdig</div>
-      </header>
-
-      <div class="q" id="questionText">…</div>
-      <div class="hint" id="hintText"></div>
-
-      <div class="row">
-        <input class="input" id="answerInput" placeholder="Skriv dit svar her…" autocomplete="off" />
-        <button class="btn" id="checkBtn">Tjek</button>
+      <div class="controls">
+        <button class="btn" onclick="resetScores()">Nulstil Point</button>
       </div>
+    </div>
+  </div>
 
-      <div class="feedback" id="feedback"></div>
-
-      <div class="nav">
-        <button class="btn" id="prevBtn">← Forrige</button>
-        <div style="display:flex; gap:10px; flex-wrap:wrap;">
-          <button class="btn" id="restartBtn">Prøv igen</button>
-          <button class="btn primary" id="nextBtn" disabled>Næste →</button>
-        </div>
+  <!-- PIN Modal -->
+  <div class="modal" id="pinModal">
+    <div class="modal-content">
+      <h2 id="modalTitle">Indtast PIN</h2>
+      <input type="password" id="pinInput" maxlength="4" placeholder="••••" />
+      <div class="error-msg" id="errorMsg"></div>
+      <div class="modal-buttons">
+        <button class="btn" onclick="closeModal()">Annuller</button>
+        <button class="btn" onclick="verifyPin()">OK</button>
       </div>
-
-      <div class="result" id="resultBox"></div>
     </div>
   </div>
 
   <script>
-    // ✅ Redigér dine 15 spørgsmål her.
-    // answer: det korrekte svar (fritekst)
-    // accept: (valgfrit) ekstra acceptable svar
-    // hint: (valgfrit) en lille hjælp under spørgsmålet
-    const quiz = [
-      { q: "Hvad er 2 + 2?", answer: "4", accept: ["fire"], hint: "Et tal." },
-      { q: "Hvad hedder sproget der kører i browseren?", answer: "javascript", accept: ["js"], hint: "Starter med J." },
-      { q: "Hvad står HTML for?", answer: "hypertext markup language", accept: ["hyper text markup language"], hint: "Tre ord." },
-
-      // 12 placeholders – udskift med dine egne:
-      { q: "Spørgsmål 4 (udskift mig)", answer: "a", accept: [], hint: "" },
-      { q: "Spørgsmål 5 (udskift mig)", answer: "a", accept: [], hint: "" },
-      { q: "Spørgsmål 6 (udskift mig)", answer: "a", accept: [], hint: "" },
-      { q: "Spørgsmål 7 (udskift mig)", answer: "a", accept: [], hint: "" },
-      { q: "Spørgsmål 8 (udskift mig)", answer: "a", accept: [], hint: "" },
-      { q: "Spørgsmål 9 (udskift mig)", answer: "a", accept: [], hint: "" },
-      { q: "Spørgsmål 10 (udskift mig)", answer: "a", accept: [], hint: "" },
-      { q: "Spørgsmål 11 (udskift mig)", answer: "a", accept: [], hint: "" },
-      { q: "Spørgsmål 12 (udskift mig)", answer: "a", accept: [], hint: "" },
-      { q: "Spørgsmål 13 (udskift mig)", answer: "a", accept: [], hint: "" },
-      { q: "Spørgsmål 14 (udskift mig)", answer: "a", accept: [], hint: "" },
-      { q: "Spørgsmål 15 (udskift mig)", answer: "a", accept: [], hint: "" },
+    const PIN = "0910";
+    let teams = [
+      { name: "Hold 1", score: 0 },
+      { name: "Hold 2", score: 0 },
+      { name: "Hold 3", score: 0 },
+      { name: "Hold 4", score: 0 }
     ];
 
-    let i = 0;
-    let score = 0;
+    let currentAction = null;
+    let currentTeamIndex = null;
 
-    // locked[idx] = true når spørgsmålet er bestået (så kan man gå videre)
-    const locked = Array(quiz.length).fill(false);
-
-    const els = {
-      counter: document.getElementById("counter"),
-      score: document.getElementById("score"),
-      status: document.getElementById("status"),
-      barFill: document.getElementById("barFill"),
-      barText: document.getElementById("barText"),
-      questionText: document.getElementById("questionText"),
-      hintText: document.getElementById("hintText"),
-      answerInput: document.getElementById("answerInput"),
-      checkBtn: document.getElementById("checkBtn"),
-      feedback: document.getElementById("feedback"),
-      prevBtn: document.getElementById("prevBtn"),
-      nextBtn: document.getElementById("nextBtn"),
-      restartBtn: document.getElementById("restartBtn"),
-      resultBox: document.getElementById("resultBox"),
-    };
-
-    function norm(s){
-      return (s ?? "")
-        .toString()
-        .trim()
-        .toLowerCase()
-        // gør det lidt mere tolerant:
-        .replace(/\s+/g, " ");
-    }
-
-    function passedCount(){
-      return locked.filter(Boolean).length;
-    }
-
-    function updateProgress(){
-      els.counter.textContent = `${i+1}/${quiz.length}`;
-      els.score.textContent = `Score: ${score}`;
-
-      const done = passedCount();
-      const pct = Math.round((done / quiz.length) * 100);
-      els.barFill.style.width = pct + "%";
-      els.barText.textContent = `${pct}% færdig`;
-
-      els.prevBtn.disabled = (i === 0);
-      els.nextBtn.disabled = !locked[i] || (i === quiz.length - 1);
-    }
-
-    function render(){
-      const item = quiz[i];
-
-      els.questionText.textContent = item.q;
-      els.hintText.textContent = item.hint ? `Hint: ${item.hint}` : "";
-
-      els.feedback.className = "feedback";
-      els.feedback.textContent = "";
-
-      els.answerInput.value = "";
-      els.answerInput.disabled = locked[i];
-      els.checkBtn.disabled = locked[i];
-
-      els.status.textContent = locked[i]
-        ? "✅ Godkendt — du kan gå videre"
-        : "Skriv svaret for at gå videre";
-
-      if (locked[i]) {
-        els.feedback.classList.add("ok");
-        els.feedback.textContent = "✅ Rigtigt! Du må gerne gå videre.";
+    // Load saved data from localStorage
+    function loadData() {
+      const saved = localStorage.getItem("scoreboardData");
+      if (saved) {
+        try {
+          teams = JSON.parse(saved);
+        } catch (e) {
+          console.error("Kunne ikke indlæse data");
+        }
       }
-
-      updateProgress();
-      updateResultBox();
-      els.answerInput.focus();
     }
 
-    function isCorrect(input, item){
-      const n = norm(input);
-      const good = norm(item.answer);
-      const extra = (item.accept || []).map(norm);
-      return n === good || extra.includes(n);
+    function saveData() {
+      localStorage.setItem("scoreboardData", JSON.stringify(teams));
     }
 
-    function check(){
-      const item = quiz[i];
-      const input = els.answerInput.value;
+    function renderScoreboard() {
+      const sb = document.getElementById("scoreboard");
+      sb.innerHTML = "";
 
-      els.feedback.className = "feedback";
+      teams.forEach((team, idx) => {
+        const teamDiv = document.createElement("div");
+        teamDiv.className = "team";
+        teamDiv.innerHTML = `
+          <div class="team-name" onclick="editTeamName(${idx})">${team.name}</div>
+          <div class="team-score">
+            <button class="score-btn" onclick="changeScore(${idx}, -1)">−</button>
+            <div class="score-display" onclick="editScore(${idx})">${team.score}</div>
+            <button class="score-btn" onclick="changeScore(${idx}, 1)">+</button>
+          </div>
+        `;
+        sb.appendChild(teamDiv);
+      });
+    }
 
-      if (!norm(input)) {
-        els.feedback.classList.add("bad");
-        els.feedback.textContent = "Skriv et svar først 🙂";
-        return;
-      }
+    function changeScore(idx, delta) {
+      currentAction = () => {
+        teams[idx].score = Math.max(0, teams[idx].score + delta);
+        saveData();
+        renderScoreboard();
+      };
+      currentTeamIndex = idx;
+      showPinModal("Indtast PIN for at ændre point");
+    }
 
-      if (isCorrect(input, item)) {
-        if (!locked[i]) score++;         // 1 point første gang du består spørgsmålet
-        locked[i] = true;
+    function editScore(idx) {
+      currentAction = () => {
+        const newScore = prompt(`Nyt pointtal for ${teams[idx].name}:`, teams[idx].score);
+        if (newScore !== null) {
+          const num = parseInt(newScore);
+          if (!isNaN(num) && num >= 0) {
+            teams[idx].score = num;
+            saveData();
+            renderScoreboard();
+          }
+        }
+      };
+      currentTeamIndex = idx;
+      showPinModal("Indtast PIN for at ændre point");
+    }
 
-        els.feedback.classList.add("ok");
-        els.feedback.textContent = "✅ Korrekt! Nu kan du gå videre.";
-        els.answerInput.disabled = true;
-        els.checkBtn.disabled = true;
+    function editTeamName(idx) {
+      currentAction = () => {
+        const newName = prompt(`Nyt navn for ${teams[idx].name}:`, teams[idx].name);
+        if (newName && newName.trim()) {
+          teams[idx].name = newName.trim();
+          saveData();
+          renderScoreboard();
+        }
+      };
+      currentTeamIndex = idx;
+      showPinModal("Indtast PIN for at ændre holdnavn");
+    }
 
-        // lås op for næste
-        els.nextBtn.disabled = (i === quiz.length - 1);
-        els.status.textContent = "✅ Godkendt — du kan gå videre";
-        updateProgress();
-        updateResultBox();
+    function resetScores() {
+      currentAction = () => {
+        if (confirm("Er du sikker på at du vil nulstille alle point?")) {
+          teams.forEach(t => t.score = 0);
+          saveData();
+          renderScoreboard();
+        }
+      };
+      currentTeamIndex = null;
+      showPinModal("Indtast PIN for at nulstille");
+    }
+
+    function showPinModal(title) {
+      document.getElementById("modalTitle").textContent = title;
+      document.getElementById("pinInput").value = "";
+      document.getElementById("errorMsg").textContent = "";
+      document.getElementById("pinModal").classList.add("show");
+      document.getElementById("pinInput").focus();
+    }
+
+    function closeModal() {
+      document.getElementById("pinModal").classList.remove("show");
+      currentAction = null;
+      currentTeamIndex = null;
+    }
+
+    function verifyPin() {
+      const input = document.getElementById("pinInput").value;
+      if (input === PIN) {
+        closeModal();
+        if (currentAction) {
+          currentAction();
+        }
       } else {
-        els.feedback.classList.add("bad");
-        els.feedback.textContent = "❌ Forkert — prøv igen.";
+        document.getElementById("errorMsg").textContent = "Forkert PIN - prøv igen";
+        document.getElementById("pinInput").value = "";
+        document.getElementById("pinInput").focus();
       }
     }
 
-    function updateResultBox(){
-      if (passedCount() < quiz.length) {
-        els.resultBox.classList.remove("show");
-        els.resultBox.innerHTML = "";
-        return;
+    // Enter key in PIN input
+    document.getElementById("pinInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        verifyPin();
       }
-      els.resultBox.classList.add("show");
-      const pct = Math.round((score / quiz.length) * 100);
-      els.resultBox.innerHTML = `
-        <b>Færdig!</b><br/>
-        Du fik <b>${score}/${quiz.length}</b> (${pct}%).<br/>
-        🏁
-      `;
-    }
-
-    els.checkBtn.addEventListener("click", check);
-    els.answerInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") check();
     });
 
-    els.prevBtn.addEventListener("click", () => { if (i > 0) { i--; render(); } });
-    els.nextBtn.addEventListener("click", () => {
-      if (i < quiz.length - 1 && locked[i]) { i++; render(); }
-    });
-
-    els.restartBtn.addEventListener("click", () => {
-      i = 0; score = 0;
-      for (let k=0; k<locked.length; k++) locked[k] = false;
-      render();
-    });
-
-    render();
+    // Initialize
+    loadData();
+    renderScoreboard();
   </script>
 </body>
+
 </html>
