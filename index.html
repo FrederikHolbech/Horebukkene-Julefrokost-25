@@ -35,8 +35,94 @@
     }
 
     .wrap {
-      max-width: 1200px;
+      max-width: 1400px;
       margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 280px;
+      gap: 24px;
+    }
+
+    .main-content {
+      min-width: 0;
+    }
+
+    .device-tracker {
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255, 255, 255, .08), rgba(255, 255, 255, .03));
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 20px;
+      backdrop-filter: blur(12px);
+      height: fit-content;
+      position: sticky;
+      top: 24px;
+      max-height: calc(100vh - 48px);
+      overflow-y: auto;
+    }
+
+    .device-tracker h3 {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 0 0 16px 0;
+      text-align: center;
+      color: var(--accent);
+    }
+
+    .team-progress {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .team-progress-item {
+      background: rgba(255, 255, 255, .04);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .team-progress-item .team-progress-name {
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 8px;
+      font-size: 15px;
+    }
+
+    .task-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .task-list-item {
+      font-size: 12px;
+      color: var(--muted);
+      padding: 4px 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .task-list-item.completed {
+      color: var(--ok);
+    }
+
+    .task-count {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid var(--border);
+    }
+
+    @media (max-width: 1024px) {
+      .wrap {
+        grid-template-columns: 1fr;
+      }
+
+      .device-tracker {
+        position: static;
+      }
     }
 
     .brand {
@@ -349,6 +435,47 @@
       font-size: 24px;
     }
 
+    .team-selector {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 20px 0;
+    }
+
+    .team-selector-btn {
+      background: rgba(255, 255, 255, .06);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      color: var(--text);
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .2s;
+    }
+
+    .team-selector-btn:hover {
+      background: rgba(124, 92, 255, .15);
+      border-color: var(--accent);
+    }
+
+    .team-selector-btn.selected {
+      background: rgba(124, 92, 255, .25);
+      border-color: var(--accent);
+    }
+
+    .current-team-badge {
+      display: inline-block;
+      background: rgba(124, 92, 255, .2);
+      border: 1px solid var(--accent);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 16px;
+    }
+
     .modal input {
       width: 100%;
       border: 1px solid var(--border);
@@ -383,43 +510,55 @@
 
 <body>
   <div class="wrap">
-    <h1 class="brand">🎄 HOREBUKKENE 🎄</h1>
+    <div class="main-content">
+      <h1 class="brand">🎄 HOREBUKKENE 🎄</h1>
 
-    <!-- Scoreboard -->
-    <div class="scoreboard-section">
-      <h2 class="scoreboard-title">Scoreboard</h2>
-      <div class="scoreboard" id="scoreboard"></div>
-      <div class="scoreboard-controls">
-        <button class="btn" onclick="resetScores()">Nulstil Point</button>
-        <button class="btn" onclick="resetTasks()">Nulstil Opgaver</button>
+      <!-- Scoreboard -->
+      <div class="scoreboard-section">
+        <h2 class="scoreboard-title">Scoreboard</h2>
+        <div class="scoreboard" id="scoreboard"></div>
+        <div class="scoreboard-controls">
+          <button class="btn" onclick="resetScores()">Nulstil Point</button>
+          <button class="btn" onclick="resetTasks()">Nulstil Opgaver</button>
+        </div>
+      </div>
+
+      <!-- Task Area -->
+      <div class="task-section">
+        <!-- Overview of all tasks -->
+        <div id="tasksOverview" class="tasks-overview">
+          <h2 style="font-size: 32px; font-weight: 600; margin: 0 0 24px 0;">Opgaver</h2>
+          <div class="task-grid" id="taskGrid"></div>
+        </div>
+
+        <!-- Individual task detail view -->
+        <div id="taskDetail" class="task-detail">
+          <button class="back-btn" onclick="showTasksOverview()">← Tilbage til opgaver</button>
+
+          <div class="task-header">
+            <div class="task-meta">
+              <span class="pill" id="taskCounter">Opgave 1/5</span>
+              <span class="pill" id="taskStatus">Ikke startet</span>
+            </div>
+            <h2 class="task-title" id="taskTitle">Alfabetet Challenge</h2>
+            <p class="task-description" id="taskDescription">Skriv alfabetet a-z så hurtigt som muligt. Du skal gøre det
+              på
+              under 10 sekunder!</p>
+          </div>
+
+          <div class="task-content" id="taskContent">
+            <!-- Task content will be inserted here -->
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- Task Area -->
-    <div class="task-section">
-      <!-- Overview of all tasks -->
-      <div id="tasksOverview" class="tasks-overview">
-        <h2 style="font-size: 32px; font-weight: 600; margin: 0 0 24px 0;">Opgaver</h2>
-        <div class="task-grid" id="taskGrid"></div>
-      </div>
-
-      <!-- Individual task detail view -->
-      <div id="taskDetail" class="task-detail">
-        <button class="back-btn" onclick="showTasksOverview()">← Tilbage til opgaver</button>
-
-        <div class="task-header">
-          <div class="task-meta">
-            <span class="pill" id="taskCounter">Opgave 1/5</span>
-            <span class="pill" id="taskStatus">Ikke startet</span>
-          </div>
-          <h2 class="task-title" id="taskTitle">Alfabetet Challenge</h2>
-          <p class="task-description" id="taskDescription">Skriv alfabetet a-z så hurtigt som muligt. Du skal gøre det
-            på
-            under 10 sekunder!</p>
-        </div>
-
-        <div class="task-content" id="taskContent">
-          <!-- Task content will be inserted here -->
+    <!-- Device Tracker Sidebar -->
+    <div class="device-tracker">
+      <h3>🏆 Opgave Fremskridt</h3>
+      <div class="team-progress" id="teamProgress">
+        <div style="text-align: center; color: var(--muted); font-size: 13px; padding: 20px 0;">
+          Ingen opgaver gennemført endnu
         </div>
       </div>
     </div>
@@ -450,6 +589,18 @@
     </div>
   </div>
 
+  <!-- Team Selector Modal -->
+  <div class="modal" id="teamSelectorModal">
+    <div class="modal-content">
+      <h2>Vælg dit hold</h2>
+      <p style="color: var(--muted); margin-bottom: 20px;">Vælg hvilket hold denne enhed repræsenterer</p>
+      <div class="team-selector" id="teamSelector"></div>
+      <div class="modal-buttons">
+        <button class="btn primary" onclick="confirmTeamSelection()" style="width: 100%;">Bekræft</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const PIN = "1202";
     let teams = [
@@ -462,6 +613,7 @@
     let currentAction = null;
     let currentTeamIndex = null;
     let editType = null;
+    let selectedTeamIndex = null;
 
     // Task system
     let currentTaskIndex = 0;
@@ -840,18 +992,22 @@
     function completeTask(taskIndex) {
       if (!completedTasks.includes(taskIndex)) {
         completedTasks.push(taskIndex);
-        saveData();
-        renderTaskGrid();
-        showTasksOverview();
-      }
-    }
 
-    function completeTask(taskIndex) {
-      if (!completedTasks.includes(taskIndex)) {
-        completedTasks.push(taskIndex);
+        // Track this task completion for current team
+        const currentTeam = localStorage.getItem("current_team_index");
+        if (currentTeam !== null) {
+          const teamTasksKey = `team_${currentTeam}_tasks`;
+          let teamTasks = JSON.parse(localStorage.getItem(teamTasksKey) || '[]');
+          if (!teamTasks.includes(taskIndex)) {
+            teamTasks.push(taskIndex);
+            localStorage.setItem(teamTasksKey, JSON.stringify(teamTasks));
+          }
+        }
+
         saveData();
         renderTaskGrid();
         showTasksOverview();
+        updateTeamProgressTracker();
       }
     }
 
@@ -2402,6 +2558,7 @@
       let verified = false;
       let rotation = 0;
       let currentRotation = 0;
+      let hasPlayed = false;
 
       const drinks = [
         { name: "Olivenolie", weight: 20, emoji: "🫒", color: "#8b7355" },
@@ -2411,8 +2568,44 @@
         { name: "Vand", weight: 5, emoji: "💧", color: "#409eff" }
       ];
 
+      // Get or create unique device ID
+      function getDeviceId() {
+        let deviceId = localStorage.getItem('shot_device_id');
+        if (!deviceId) {
+          deviceId = 'device_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+          localStorage.setItem('shot_device_id', deviceId);
+        }
+        return deviceId;
+      }
+
+      // Check if this device has already played
+      function checkIfPlayed() {
+        const deviceId = getDeviceId();
+        const played = localStorage.getItem(`shot_played_${deviceId}`);
+        if (played === 'true') {
+          hasPlayed = true;
+          return true;
+        }
+        return false;
+      }
+
+      // Mark this device as having played
+      function markAsPlayed() {
+        const deviceId = getDeviceId();
+        localStorage.setItem(`shot_played_${deviceId}`, 'true');
+
+        // Associate this device with current team
+        const currentTeam = localStorage.getItem("current_team_index");
+        if (currentTeam !== null) {
+          localStorage.setItem(`device_team_${deviceId}`, currentTeam);
+        }
+
+        hasPlayed = true;
+        updateDeviceTracker();
+      }
+
       function spin() {
-        if (spinning) return;
+        if (spinning || hasPlayed) return;
         spinning = true;
         verified = false;
         result = null;
@@ -2468,7 +2661,15 @@
               Værten godkender når du har drukket.
             </div>
             
-            ${!result && !spinning ? `
+            ${hasPlayed ? `
+              <div style="margin: 40px 0;">
+                <div style="font-size: 48px; margin-bottom: 20px;">🎰</div>
+                <div style="font-size: 24px; color: var(--muted); margin-bottom: 20px;">
+                  Dette hold har allerede spillet shot roulette!
+                </div>
+                <button class="btn primary" onclick="shotFinish()">Tilbage til opgaver</button>
+              </div>
+            ` : !result && !spinning ? `
               <div style="margin: 40px 0;">
                 <div style="position: relative; width: 300px; height: 300px; margin: 0 auto;">
                   ${renderWheel(currentRotation, false)}
@@ -2590,6 +2791,7 @@
 
         if (input === PIN) {
           verified = true;
+          markAsPlayed();
           render();
         } else {
           errorDiv.textContent = "Forkert PIN - prøv igen";
@@ -2601,11 +2803,11 @@
       };
 
       window.shotFinish = () => {
-        container.innerHTML = '<div style="text-align: center; padding: 40px;"><div style="font-size: 48px; margin-bottom: 16px;">🎰</div><div style="font-size: 24px; font-weight: 600;">Shot roulette gennemført!</div></div>';
-        document.getElementById("taskStatus").textContent = "✅ Gennemført";
-        completeTask(currentTaskIndex);
+        showTasksOverview();
       };
 
+      // Check if already played on initial render
+      checkIfPlayed();
       render();
       document.getElementById("taskStatus").textContent = "Klar til at spinde";
     }
@@ -2860,6 +3062,7 @@
 
             // Update the grid
             renderTaskGrid();
+            updateTeamProgressTracker();
           } catch (e) {
             console.error("Kunne ikke indlæse opgaver");
           }
@@ -2868,13 +3071,190 @@
         // Reload scoreboard
         loadData();
         renderScoreboard();
+      } else if (e.key && (e.key.startsWith("shot_played_") || e.key.startsWith("team_") || e.key.startsWith("device_team_"))) {
+        // Update team progress tracker when tasks are completed
+        updateTeamProgressTracker();
       }
     });
+
+    // ===== TEAM PROGRESS TRACKER =====
+    function updateTeamProgressTracker() {
+      const progressEl = document.getElementById("teamProgress");
+      const teamData = [];
+
+      // Get all teams and their completed tasks
+      teams.forEach((team, index) => {
+        const teamTasksKey = `team_${index}_tasks`;
+        const completedTaskIndices = JSON.parse(localStorage.getItem(teamTasksKey) || '[]');
+
+        // Also check for shot roulette completion
+        let shotRouletteCompleted = false;
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith("shot_played_")) {
+            const deviceId = key.replace("shot_played_", "");
+            const teamKey = `device_team_${deviceId}`;
+            const deviceTeamIndex = localStorage.getItem(teamKey);
+            if (deviceTeamIndex == index && localStorage.getItem(key) === "true") {
+              shotRouletteCompleted = true;
+              break;
+            }
+          }
+        }
+
+        if (completedTaskIndices.length > 0 || shotRouletteCompleted) {
+          teamData.push({
+            name: team.name,
+            index: index,
+            completedTasks: completedTaskIndices,
+            shotRouletteCompleted: shotRouletteCompleted
+          });
+        }
+      });
+
+      if (teamData.length === 0) {
+        progressEl.innerHTML = `
+          <div style="text-align: center; color: var(--muted); font-size: 13px; padding: 20px 0;">
+            Ingen opgaver gennemført endnu
+          </div>
+        `;
+      } else {
+        progressEl.innerHTML = teamData.map(team => {
+          const allTasks = [...team.completedTasks];
+
+          // Find shot roulette task index
+          const shotRouletteIndex = tasks.findIndex(t => t.type === 'shot-roulette');
+          if (team.shotRouletteCompleted && shotRouletteIndex !== -1 && !allTasks.includes(shotRouletteIndex)) {
+            allTasks.push(shotRouletteIndex);
+          }
+
+          const totalTasks = allTasks.length;
+
+          return `
+            <div class="team-progress-item">
+              <div class="team-progress-name">${team.name}</div>
+              <div class="task-list">
+                ${allTasks.map(taskIndex => {
+            const task = tasks[taskIndex];
+            if (!task) return '';
+            // Extract points from title
+            const pointsMatch = task.title.match(/(\d+)\s*Point/);
+            const points = pointsMatch ? pointsMatch[1] : '?';
+            return `
+                    <div class="task-list-item completed">
+                      <span>✅</span>
+                      <span>${task.title.split(' - ')[0]} (${points}p)</span>
+                    </div>
+                  `;
+          }).join('')}
+              </div>
+              <div class="task-count">
+                ${totalTasks} opgave${totalTasks !== 1 ? 'r' : ''} gennemført
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    // Compatibility function name
+    function updateDeviceTracker() {
+      updateTeamProgressTracker();
+    }
+
+    // ===== TEAM SELECTOR =====
+    function showTeamSelector() {
+      const modal = document.getElementById("teamSelectorModal");
+      const selector = document.getElementById("teamSelector");
+
+      // Get current team if any
+      const currentTeam = localStorage.getItem("current_team_index");
+
+      selector.innerHTML = teams.map((team, index) => `
+        <button 
+          class="team-selector-btn ${currentTeam == index ? 'selected' : ''}" 
+          onclick="selectTeam(${index})"
+          id="teamBtn${index}"
+        >
+          ${team.name}
+        </button>
+      `).join('');
+
+      selectedTeamIndex = currentTeam !== null ? parseInt(currentTeam) : null;
+      modal.classList.add("show");
+    }
+
+    function selectTeam(index) {
+      selectedTeamIndex = index;
+
+      // Update UI
+      document.querySelectorAll('.team-selector-btn').forEach(btn => {
+        btn.classList.remove('selected');
+      });
+      document.getElementById(`teamBtn${index}`).classList.add('selected');
+    }
+
+    function confirmTeamSelection() {
+      if (selectedTeamIndex !== null) {
+        localStorage.setItem("current_team_index", selectedTeamIndex.toString());
+
+        // Store team association for this device
+        const deviceId = getGlobalDeviceId();
+        localStorage.setItem(`device_team_${deviceId}`, selectedTeamIndex.toString());
+
+        document.getElementById("teamSelectorModal").classList.remove("show");
+        updateCurrentTeamDisplay();
+        updateDeviceTracker();
+      }
+    }
+
+    function getGlobalDeviceId() {
+      let deviceId = localStorage.getItem('global_device_id');
+      if (!deviceId) {
+        deviceId = 'device_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('global_device_id', deviceId);
+      }
+      return deviceId;
+    }
+
+    function updateCurrentTeamDisplay() {
+      const currentTeam = localStorage.getItem("current_team_index");
+      let badge = document.getElementById("currentTeamBadge");
+
+      if (!badge) {
+        badge = document.createElement("div");
+        badge.id = "currentTeamBadge";
+        badge.className = "current-team-badge";
+        badge.style.cssText = "text-align: center; cursor: pointer;";
+        badge.onclick = showTeamSelector;
+
+        const brand = document.querySelector(".brand");
+        brand.parentNode.insertBefore(badge, brand.nextSibling);
+      }
+
+      if (currentTeam !== null) {
+        const index = parseInt(currentTeam);
+        if (!isNaN(index) && teams[index]) {
+          badge.textContent = `📱 ${teams[index].name} (Klik for at ændre)`;
+          badge.style.display = "block";
+        }
+      } else {
+        badge.textContent = "📱 Vælg dit hold (Klik her)";
+        badge.style.display = "block";
+      }
+    }
 
     // ===== INITIALIZE =====
     loadData();
     renderScoreboard();
     renderTaskGrid();
+    updateTeamProgressTracker();
+    updateCurrentTeamDisplay();
+
+    // Show team selector on first load if not set
+    if (localStorage.getItem("current_team_index") === null) {
+      setTimeout(showTeamSelector, 500);
+    }
   </script>
 </body>
 
