@@ -983,8 +983,7 @@
       ];
 
       let currentS = 0;
-      let revealed = false;
-      let guessResult = null;
+      let answered = false;
 
       function render() {
         container.innerHTML = `
@@ -996,7 +995,7 @@
               ${songs[currentS].emoji}
             </div>
             
-            ${!revealed ? `
+            ${!answered ? `
               <div style="max-width: 400px; margin: 20px auto;">
                 <input 
                   type="text" 
@@ -1006,24 +1005,18 @@
                   onkeypress="if(event.key==='Enter'){event.preventDefault();emojiCheckGuess();}"
                 >
               </div>
-              ${guessResult !== null ? `
-                <div style="font-size: 20px; margin: 20px 0; padding: 16px; border-radius: 12px; background: ${guessResult ? 'rgba(36, 209, 143, 0.1)' : 'rgba(255, 92, 122, 0.1)'}; color: ${guessResult ? 'var(--ok)' : 'var(--bad)'};">
-                  ${guessResult ? '✓ Korrekt! 🎉' : '✗ Forkert - prøv igen'}
-                </div>
-              ` : ''}
+              <button class="btn primary" onclick="emojiCheckGuess()" style="margin-top: 20px;">Tjek svar</button>
             ` : `
               <div style="font-size: 20px; margin: 20px 0; min-height: 60px; color: var(--ok);">
-                🎵 ${songs[currentS].title}
+                ✓ Korrekt! 🎵 ${songs[currentS].title}
+              </div>
+              <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 30px;">
+                ${currentS < songs.length - 1 ? '<button class="btn primary" onclick="emojiNext()">Næste →</button>' : '<button class="btn primary" onclick="emojiFinish()">Færdig! ✓</button>'}
               </div>
             `}
-            
-            <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 30px;">
-              ${!revealed ? '<button class="btn" onclick="emojiCheckGuess()">Tjek svar</button>' : ''}
-              ${currentS < songs.length - 1 ? '<button class="btn primary" onclick="emojiNext()">Næste →</button>' : '<button class="btn primary" onclick="emojiFinish()">Færdig! ✓</button>'}
-            </div>
           </div>
         `;
-        if (!revealed) {
+        if (!answered) {
           setTimeout(() => document.getElementById("songGuess")?.focus(), 100);
         }
       }
@@ -1035,20 +1028,24 @@
 
         // Check if guess contains key words or matches title
         if (guess && (answer.includes(guess) || guess.includes(answer) || title.includes(guess) || guess.includes(title))) {
-          guessResult = true;
-          setTimeout(() => {
-            revealed = true;
-            guessResult = null;
-            render();
-          }, 1500);
-        } else {
-          guessResult = false;
+          answered = true;
           render();
+        } else {
+          // Wrong answer - shake the input or show error
+          const input = document.getElementById("songGuess");
+          if (input) {
+            input.style.borderColor = 'var(--bad)';
+            input.value = '';
+            input.placeholder = 'Forkert - prøv igen!';
+            setTimeout(() => {
+              input.style.borderColor = '';
+              input.placeholder = 'Skriv dit gæt her...';
+            }, 1500);
+          }
         }
       };
 
-      window.emojiReveal = () => { revealed = true; guessResult = null; render(); };
-      window.emojiNext = () => { if (currentS < songs.length - 1) { currentS++; revealed = false; guessResult = null; render(); } };
+      window.emojiNext = () => { if (currentS < songs.length - 1) { currentS++; answered = false; render(); } };
       window.emojiFinish = () => {
         container.innerHTML = '<div style="text-align: center; padding: 40px;"><div style="font-size: 32px; margin-bottom: 16px;">🎵</div><div style="font-size: 24px; font-weight: 600;">Alle sange gennemgået!</div></div>';
         document.getElementById("taskStatus").textContent = "✅ Gennemført";
