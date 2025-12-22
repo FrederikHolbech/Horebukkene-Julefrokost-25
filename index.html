@@ -619,6 +619,9 @@
     let currentTaskIndex = 0;
     let completedTasks = [];
     let activeTimers = [];
+
+    // Global blackjack state to prevent multiple instances
+    let blackjackTimerRunning = false;
     const tasks = [
       {
         title: "Find Sangen - 10 Point",
@@ -2104,6 +2107,8 @@
           if (index > -1) activeTimers.splice(index, 1);
         }
 
+        blackjackTimerRunning = true;
+
         cooldownInterval = setInterval(() => {
           timeRemaining--;
           if (timeRemaining <= 0) {
@@ -2111,6 +2116,7 @@
             const index = activeTimers.indexOf(cooldownInterval);
             if (index > -1) activeTimers.splice(index, 1);
             gameState = 'betting';
+            blackjackTimerRunning = false;
           }
           // Only render if we're still on the blackjack task
           const currentTask = tasks[currentTaskIndex];
@@ -2395,9 +2401,18 @@
       window.bjFinish = () => {
         container.innerHTML = '<div style="text-align: center; padding: 40px;"><div style="font-size: 48px; margin-bottom: 16px;">🃏</div><div style="font-size: 24px; font-weight: 600;">Blackjack gennemført!</div></div>';
         document.getElementById("taskStatus").textContent = "✅ Gennemført";
-        if (cooldownInterval) clearInterval(cooldownInterval);
+        if (cooldownInterval) {
+          clearInterval(cooldownInterval);
+          blackjackTimerRunning = false;
+        }
         completeTask(currentTaskIndex);
       };
+
+      // Don't re-initialize if timer is already running
+      if (blackjackTimerRunning && checkCooldown()) {
+        render();
+        return;
+      }
 
       // Check cooldown on initial render
       checkCooldown();
