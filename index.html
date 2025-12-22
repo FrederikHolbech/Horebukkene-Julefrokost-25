@@ -622,21 +622,25 @@
       console.log('Verifying PIN, editType:', editType, 'currentTeamIndex:', currentTeamIndex);
 
       if (input === PIN) {
+        // Save editType and currentTeamIndex before closing modal
+        const savedEditType = editType;
+        const savedTeamIndex = currentTeamIndex;
+        const savedAction = currentAction;
+
         closeModal();
 
         // Use setTimeout to ensure modal closes before opening edit modal
         setTimeout(() => {
-          if (currentAction) {
+          if (savedAction) {
             console.log('Executing currentAction');
-            currentAction();
-            currentAction = null;
+            savedAction();
           }
-          else if (editType === 'name') {
-            console.log('Opening name edit modal for team:', currentTeamIndex);
-            showEditModal(`Rediger ${teams[currentTeamIndex].name}`, teams[currentTeamIndex].name, 'name');
-          } else if (editType === 'score') {
-            console.log('Opening score edit modal for team:', currentTeamIndex);
-            showEditModal(`Rediger point for ${teams[currentTeamIndex].name}`, teams[currentTeamIndex].score, 'score');
+          else if (savedEditType === 'name') {
+            console.log('Opening name edit modal for team:', savedTeamIndex);
+            showEditModal(`Rediger ${teams[savedTeamIndex].name}`, teams[savedTeamIndex].name, 'name');
+          } else if (savedEditType === 'score') {
+            console.log('Opening score edit modal for team:', savedTeamIndex);
+            showEditModal(`Rediger point for ${teams[savedTeamIndex].name}`, teams[savedTeamIndex].score, 'score');
           }
         }, 150);
       } else {
@@ -644,9 +648,7 @@
         document.getElementById("pinInput").value = "";
         document.getElementById("pinInput").focus();
       }
-    }
-
-    // ===== TASK FUNCTIONS =====
+    }    // ===== TASK FUNCTIONS =====
 
     function renderTask() {
       const task = tasks[currentTaskIndex];
