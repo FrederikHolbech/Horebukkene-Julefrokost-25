@@ -460,6 +460,7 @@
       <div class="scoreboard" id="scoreboard"></div>
       <div class="scoreboard-controls">
         <button class="btn" onclick="resetScores()">Nulstil Point</button>
+        <button class="btn" onclick="resetTasks()">Nulstil Opgaver</button>
       </div>
     </div>
 
@@ -533,6 +534,7 @@
 
     // Task system
     let currentTaskIndex = 0;
+    let completedTasks = [];
     const tasks = [
       {
         title: "Shots Trivia",
@@ -578,10 +580,19 @@
           console.error("Kunne ikke indlæse data");
         }
       }
+      const savedTasks = localStorage.getItem("completedTasks");
+      if (savedTasks) {
+        try {
+          completedTasks = JSON.parse(savedTasks);
+        } catch (e) {
+          console.error("Kunne ikke indlæse opgaver");
+        }
+      }
     }
 
     function saveData() {
       localStorage.setItem("scoreboardData", JSON.stringify(teams));
+      localStorage.setItem("completedTasks", JSON.stringify(completedTasks));
     }
 
     function renderScoreboard() {
@@ -635,6 +646,19 @@
       };
       currentTeamIndex = null;
       showPinModal("Indtast PIN for at nulstille");
+    }
+
+    function resetTasks() {
+      currentAction = () => {
+        if (confirm("Er du sikker på at du vil nulstille alle opgaver?")) {
+          completedTasks = [];
+          saveData();
+          renderTaskGrid();
+          showTasksOverview();
+        }
+      };
+      currentTeamIndex = null;
+      showPinModal("Indtast PIN for at nulstille opgaver");
     }
 
     function showPinModal(title) {
@@ -798,6 +822,8 @@
       grid.innerHTML = "";
 
       tasks.forEach((task, idx) => {
+        if (completedTasks.includes(idx)) return; // Skip completed tasks
+
         const card = document.createElement("div");
         card.className = "task-card";
         card.onclick = () => openTask(idx);
@@ -810,9 +836,17 @@
 
         grid.appendChild(card);
       });
+
+      if (completedTasks.length === tasks.length) {
+        grid.innerHTML = '<div style="text-align: center; padding: 60px 20px; color: var(--muted);"><div style="font-size: 48px; margin-bottom: 16px;">🎉</div><div style="font-size: 24px; font-weight: 600;">Alle opgaver gennemført!</div><div style="margin-top: 12px;">Tryk "Nulstil Opgaver" for at starte forfra</div></div>';
+      }
     }
 
     function openTask(index) {
+      if (completedTasks.includes(index)) {
+        alert("Denne opgave er allerede gennemført!");
+        return;
+      }
       currentTaskIndex = index;
       document.getElementById("tasksOverview").classList.add("hidden");
       document.getElementById("taskDetail").classList.add("active");
@@ -822,6 +856,24 @@
     function showTasksOverview() {
       document.getElementById("taskDetail").classList.remove("active");
       document.getElementById("tasksOverview").classList.remove("hidden");
+    }
+
+    function completeTask(taskIndex) {
+      if (!completedTasks.includes(taskIndex)) {
+        completedTasks.push(taskIndex);
+        saveData();
+        renderTaskGrid();
+        showTasksOverview();
+      }
+    }
+
+    function completeTask(taskIndex) {
+      if (!completedTasks.includes(taskIndex)) {
+        completedTasks.push(taskIndex);
+        saveData();
+        renderTaskGrid();
+        showTasksOverview();
+      }
     }
 
     function renderTask() {
@@ -908,6 +960,7 @@
       window.triviaFinish = () => {
         container.innerHTML = '<div style="text-align: center; padding: 40px;"><div style="font-size: 32px; margin-bottom: 16px;">🎉</div><div style="font-size: 24px; font-weight: 600;">Godt klaret!</div></div>';
         document.getElementById("taskStatus").textContent = "✅ Gennemført";
+        completeTask(currentTaskIndex);
       };
 
       render();
@@ -917,15 +970,21 @@
     // 2. EMOJI SONGS TASK
     function renderEmojiSongsTask(container) {
       const songs = [
-        { emoji: "🌙☀️🌟", answer: "sol måne stjerner", title: "Sol, Måne, Stjerner" },
-        { emoji: "💃🕺🎵", answer: "dans", title: "Dans (nogen sang med dans)" },
-        { emoji: "❤️💔😢", answer: "hjertet", title: "(Noget med hjerte/kærlighed)" },
-        { emoji: "🎄🔔⛄", answer: "jul", title: "(Julehit)" },
-        { emoji: "👑💎✨", answer: "dronning", title: "(Noget med dronning/konge)" }
+        { emoji: "🃏🎰😐", answer: "pokerface", title: "Pokerface - Lady Gaga" },
+        { emoji: "⚡🌩️💥", answer: "thunderstruck", title: "Thunderstruck - AC/DC" },
+        { emoji: "🗺️📍🧭", answer: "maps", title: "Maps - Maroon 5" },
+        { emoji: "🔟📅⏰", answer: "10 år", title: "10 år - Emil Lange" },
+        { emoji: "💡🔦✨", answer: "skarpt lys", title: "Skarpt Lys - Gilli" },
+        { emoji: "🏗️🚨⚠️", answer: "kranalarm", title: "Kranalarm - Jesubrødre" },
+        { emoji: "🍬🎨🖌️", answer: "candy paint", title: "Candy Paint - Post Malone" },
+        { emoji: "🇩🇪🖤❤️💛", answer: "deutschland", title: "Deutschland - Rammstein" },
+        { emoji: "💃👑🎵", answer: "dancing queen", title: "Dancing Queen - ABBA" },
+        { emoji: "🕊️☮️🤝", answer: "fred", title: "Fred - Bo Evers" }
       ];
 
       let currentS = 0;
       let revealed = false;
+      let guessResult = null;
 
       function render() {
         container.innerHTML = `
@@ -936,22 +995,64 @@
             <div style="font-size: 64px; margin: 30px 0;">
               ${songs[currentS].emoji}
             </div>
-            <div style="font-size: 20px; margin: 20px 0; min-height: 60px; color: ${revealed ? 'var(--ok)' : 'var(--muted)'};">
-              ${revealed ? '🎵 ' + songs[currentS].title : 'Gæt sangen...'}
-            </div>
+            
+            ${!revealed ? `
+              <div style="max-width: 400px; margin: 20px auto;">
+                <input 
+                  type="text" 
+                  id="songGuess" 
+                  placeholder="Skriv dit gæt her..." 
+                  style="width: 100%; padding: 16px; font-size: 18px; border: 2px solid var(--border); border-radius: 12px; background: var(--card); color: var(--text); text-align: center;"
+                  onkeypress="if(event.key==='Enter'){event.preventDefault();emojiCheckGuess();}"
+                >
+              </div>
+              ${guessResult !== null ? `
+                <div style="font-size: 20px; margin: 20px 0; padding: 16px; border-radius: 12px; background: ${guessResult ? 'rgba(36, 209, 143, 0.1)' : 'rgba(255, 92, 122, 0.1)'}; color: ${guessResult ? 'var(--ok)' : 'var(--bad)'};">
+                  ${guessResult ? '✓ Korrekt! 🎉' : '✗ Forkert - prøv igen'}
+                </div>
+              ` : ''}
+            ` : `
+              <div style="font-size: 20px; margin: 20px 0; min-height: 60px; color: var(--ok);">
+                🎵 ${songs[currentS].title}
+              </div>
+            `}
+            
             <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 30px;">
-              ${!revealed ? '<button class="btn" onclick="emojiReveal()">Vis svar</button>' : ''}
+              ${!revealed ? '<button class="btn" onclick="emojiCheckGuess()">Tjek svar</button>' : ''}
               ${currentS < songs.length - 1 ? '<button class="btn primary" onclick="emojiNext()">Næste →</button>' : '<button class="btn primary" onclick="emojiFinish()">Færdig! ✓</button>'}
             </div>
           </div>
         `;
+        if (!revealed) {
+          setTimeout(() => document.getElementById("songGuess")?.focus(), 100);
+        }
       }
 
-      window.emojiReveal = () => { revealed = true; render(); };
-      window.emojiNext = () => { if (currentS < songs.length - 1) { currentS++; revealed = false; render(); } };
+      window.emojiCheckGuess = () => {
+        const guess = document.getElementById("songGuess")?.value.toLowerCase().trim() || '';
+        const answer = songs[currentS].answer.toLowerCase();
+        const title = songs[currentS].title.toLowerCase();
+
+        // Check if guess contains key words or matches title
+        if (guess && (answer.includes(guess) || guess.includes(answer) || title.includes(guess) || guess.includes(title))) {
+          guessResult = true;
+          setTimeout(() => {
+            revealed = true;
+            guessResult = null;
+            render();
+          }, 1500);
+        } else {
+          guessResult = false;
+          render();
+        }
+      };
+
+      window.emojiReveal = () => { revealed = true; guessResult = null; render(); };
+      window.emojiNext = () => { if (currentS < songs.length - 1) { currentS++; revealed = false; guessResult = null; render(); } };
       window.emojiFinish = () => {
         container.innerHTML = '<div style="text-align: center; padding: 40px;"><div style="font-size: 32px; margin-bottom: 16px;">🎵</div><div style="font-size: 24px; font-weight: 600;">Alle sange gennemgået!</div></div>';
         document.getElementById("taskStatus").textContent = "✅ Gennemført";
+        completeTask(currentTaskIndex);
       };
 
       render();
@@ -995,10 +1096,18 @@
           <div style="margin-top: 40px; font-size: 14px; color: var(--muted);">
             1 = Tag 1 shot | 6 = Fordel 2 shots | Andet = Ingenting
           </div>
+          <div style="margin-top: 40px;">
+            <button class="btn" onclick="rouletteFinish()">Afslut opgave ✓</button>
+          </div>
         </div>
       `;
 
       window.spinRoulette = spin;
+      window.rouletteFinish = () => {
+        container.innerHTML = '<div style="text-align: center; padding: 40px;"><div style="font-size: 32px; margin-bottom: 16px;">🎲</div><div style="font-size: 24px; font-weight: 600;">Roulette afsluttet!</div></div>';
+        document.getElementById("taskStatus").textContent = "✅ Gennemført";
+        completeTask(currentTaskIndex);
+      };
       document.getElementById("taskStatus").textContent = "Klar til spin";
     }
 
@@ -1040,6 +1149,7 @@
       window.mostLikelyFinish = () => {
         container.innerHTML = '<div style="text-align: center; padding: 40px;"><div style="font-size: 32px; margin-bottom: 16px;">👆</div><div style="font-size: 24px; font-weight: 600;">Alle spørgsmål gennemgået!</div></div>';
         document.getElementById("taskStatus").textContent = "✅ Gennemført";
+        completeTask(currentTaskIndex);
       };
 
       render();
@@ -1084,6 +1194,7 @@
       window.truthFinish = () => {
         container.innerHTML = '<div style="text-align: center; padding: 40px;"><div style="font-size: 32px; margin-bottom: 16px;">🍻</div><div style="font-size: 24px; font-weight: 600;">I overlevede!</div></div>';
         document.getElementById("taskStatus").textContent = "✅ Gennemført";
+        completeTask(currentTaskIndex);
       };
 
       render();
