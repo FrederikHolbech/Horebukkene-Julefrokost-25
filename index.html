@@ -414,7 +414,7 @@
       <div class="error-msg" id="errorMsg"></div>
       <div class="modal-buttons">
         <button class="btn" onclick="closeModal()">Annuller</button>
-        <button class="btn" onclick="verifyPin()">OK</button>
+        <button class="btn" id="pinOkBtn">OK</button>
       </div>
     </div>
   </div>
@@ -426,7 +426,7 @@
       <input type="text" id="editInput" placeholder="" />
       <div class="modal-buttons">
         <button class="btn" onclick="closeEditModal()">Annuller</button>
-        <button class="btn" onclick="saveEdit()">Gem</button>
+        <button class="btn" id="editOkBtn">Gem</button>
       </div>
     </div>
   </div>
@@ -823,12 +823,16 @@
 
     // ===== EVENT LISTENERS =====
 
+    document.getElementById("pinOkBtn").addEventListener("click", verifyPin);
+
     document.getElementById("pinInput").addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
         e.preventDefault();
         verifyPin();
       }
     });
+
+    document.getElementById("editOkBtn").addEventListener("click", saveEdit);
 
     document.getElementById("editInput").addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
