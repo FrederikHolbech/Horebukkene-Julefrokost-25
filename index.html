@@ -570,12 +570,8 @@
       console.log('showEditModal called:', title, currentValue, type);
       console.log('currentTeamIndex before showEditModal:', currentTeamIndex);
 
-      // Store both editType and currentTeamIndex - they were set before calling this
-      // Don't let them get overwritten
-      const teamIndex = currentTeamIndex;
-
-      editType = type;
-      currentTeamIndex = teamIndex;
+      // DON'T reassign - currentTeamIndex and editType are already set before calling this
+      // Just use them as-is
 
       console.log('After setting - editType:', editType, 'currentTeamIndex:', currentTeamIndex);
 
@@ -585,7 +581,7 @@
       document.getElementById("editModalTitle").textContent = title;
       editInput.value = currentValue;
 
-      if (type === 'score') {
+      if (type === 'score' || type === 'scoreChange') {
         editInput.type = 'number';
         editInput.min = '0';
       } else {
