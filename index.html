@@ -511,7 +511,7 @@
       },
       {
         title: "Fysiologi Quiz - 10 Point",
-        description: "Svar på 5 svære spørgsmål om fysiologi! 🧠",
+        description: "Svar på 5 spørgsmål om fysiologi! 🧠",
         type: "physiology-quiz"
       },
       {
@@ -523,6 +523,16 @@
         title: "Sugerørs Challenge - 5 Point",
         description: "Drik en øl gennem et sugerør! 🍺🥤",
         type: "straw-challenge"
+      },
+      {
+        title: "Ølbong Challenge - 10 Point",
+        description: "Tag en ølbong på under 2,5 sekund! 🍺⚡",
+        type: "beerbong-challenge"
+      },
+      {
+        title: "Strava Løb - 15 Point",
+        description: "Løb en kilometer og vis Dunkin bevis fra Strava! 🏃‍♂️",
+        type: "strava-run"
       },
       {
         title: "Yatzy Challenge - 50 Point",
@@ -864,6 +874,12 @@
           break;
         case "straw-challenge":
           renderStrawChallengeTask(content);
+          break;
+        case "beerbong-challenge":
+          renderBeerBongTask(content);
+          break;
+        case "strava-run":
+          renderStravaRunTask(content);
           break;
         case "yatzy-challenge":
           renderYatzyChallengeTask(content);
@@ -1412,7 +1428,159 @@
       document.getElementById("taskStatus").textContent = "Klar til at drikke";
     }
 
-    // 7. YATZY CHALLENGE TASK
+    // 7. BEER BONG CHALLENGE TASK
+    function renderBeerBongTask(container) {
+      let verified = false;
+
+      function render() {
+        container.innerHTML = `
+          <div style="text-align: center;">
+            <div style="font-size: 24px; font-weight: 600; margin-bottom: 20px;">
+              Ølbong Challenge ⚡🍺
+            </div>
+            
+            <div style="font-size: 18px; color: var(--muted); margin-bottom: 30px; line-height: 1.6;">
+              Tag en ølbong på under 2,5 sekunder!<br>
+              Værten skal bekræfte med pinkode når det er gjort.
+            </div>
+            
+            <div style="font-size: 64px; margin: 40px 0;">
+              🍺⚡
+            </div>
+            
+            ${!verified ? `
+              <div style="max-width: 300px; margin: 30px auto;">
+                <div style="font-size: 18px; margin-bottom: 12px; color: var(--text);">
+                  Vært PIN-kode:
+                </div>
+                <input 
+                  type="password" 
+                  id="beerBongPin" 
+                  placeholder="Indtast PIN" 
+                  style="width: 100%; padding: 16px; font-size: 18px; border: 2px solid var(--border); border-radius: 12px; background: var(--card); color: var(--text); text-align: center;"
+                  onkeypress="if(event.key==='Enter'){event.preventDefault();verifyBeerBong();}"
+                >
+                <div id="beerBongError" style="color: var(--bad); margin-top: 12px; min-height: 24px;"></div>
+                <button class="btn primary" onclick="verifyBeerBong()" style="margin-top: 20px; width: 100%;">Bekræft 🍺</button>
+              </div>
+            ` : `
+              <div style="margin-top: 40px;">
+                <div style="font-size: 28px; color: var(--ok); margin-bottom: 20px;">
+                  ✅ Bekræftet af vært!
+                </div>
+                <button class="btn primary" onclick="beerBongFinish()">Fortsæt →</button>
+              </div>
+            `}
+          </div>
+        `;
+        if (!verified) {
+          setTimeout(() => document.getElementById("beerBongPin")?.focus(), 100);
+        }
+      }
+
+      window.verifyBeerBong = () => {
+        const input = document.getElementById("beerBongPin")?.value || '';
+        const errorDiv = document.getElementById("beerBongError");
+
+        if (input === PIN) {
+          verified = true;
+          render();
+        } else {
+          errorDiv.textContent = "Forkert PIN - prøv igen";
+          document.getElementById("beerBongPin").value = "";
+          setTimeout(() => {
+            errorDiv.textContent = "";
+          }, 2000);
+        }
+      };
+
+      window.beerBongFinish = () => {
+        container.innerHTML = '<div style="text-align: center; padding: 40px;"><div style="font-size: 32px; margin-bottom: 16px;">⚡🍺</div><div style="font-size: 24px; font-weight: 600;">Ølbong challenge gennemført!</div></div>';
+        document.getElementById("taskStatus").textContent = "✅ Gennemført";
+        completeTask(currentTaskIndex);
+      };
+
+      render();
+      document.getElementById("taskStatus").textContent = "Klar til ølbong";
+    }
+
+    // 8. STRAVA RUN CHALLENGE TASK
+    function renderStravaRunTask(container) {
+      let verified = false;
+
+      function render() {
+        container.innerHTML = `
+          <div style="text-align: center;">
+            <div style="font-size: 24px; font-weight: 600; margin-bottom: 20px;">
+              Strava Løb Challenge 🏃‍♂️
+            </div>
+            
+            <div style="font-size: 18px; color: var(--muted); margin-bottom: 30px; line-height: 1.6;">
+              Løb en kilometer og vis bevis fra Strava!<br>
+              Værten skal bekræfte med pinkode når det er gjort.
+            </div>
+            
+            <div style="font-size: 64px; margin: 40px 0;">
+              🏃‍♂️📱
+            </div>
+            
+            ${!verified ? `
+              <div style="max-width: 300px; margin: 30px auto;">
+                <div style="font-size: 18px; margin-bottom: 12px; color: var(--text);">
+                  Vært PIN-kode:
+                </div>
+                <input 
+                  type="password" 
+                  id="stravaPin" 
+                  placeholder="Indtast PIN" 
+                  style="width: 100%; padding: 16px; font-size: 18px; border: 2px solid var(--border); border-radius: 12px; background: var(--card); color: var(--text); text-align: center;"
+                  onkeypress="if(event.key==='Enter'){event.preventDefault();verifyStrava();}"
+                >
+                <div id="stravaError" style="color: var(--bad); margin-top: 12px; min-height: 24px;"></div>
+                <button class="btn primary" onclick="verifyStrava()" style="margin-top: 20px; width: 100%;">✅ Bekræft løb</button>
+              </div>
+            ` : `
+              <div style="margin-top: 40px;">
+                <div style="font-size: 28px; color: var(--ok); margin-bottom: 20px;">
+                  ✅ Bekræftet af vært!
+                </div>
+                <button class="btn primary" onclick="stravaFinish()">Fortsæt →</button>
+              </div>
+            `}
+          </div>
+        `;
+        if (!verified) {
+          setTimeout(() => document.getElementById("stravaPin")?.focus(), 100);
+        }
+      }
+
+      window.verifyStrava = () => {
+        const input = document.getElementById("stravaPin")?.value || '';
+        const errorDiv = document.getElementById("stravaError");
+
+        if (input === PIN) {
+          verified = true;
+          render();
+        } else {
+          errorDiv.textContent = "Forkert PIN - prøv igen";
+          document.getElementById("stravaPin").value = "";
+          setTimeout(() => {
+            errorDiv.textContent = "";
+          }, 2000);
+        }
+      };
+
+      window.stravaFinish = () => {
+        container.innerHTML = '<div style="text-align: center; padding: 40px;"><div style="font-size: 32px; margin-bottom: 16px;">🏃‍♂️🏆</div><div style="font-size: 24px; font-weight: 600;">Strava løb gennemført!</div></div>';
+        document.getElementById("taskStatus").textContent = "✅ Gennemført";
+        completeTask(currentTaskIndex);
+      };
+
+      render();
+      document.getElementById("taskStatus").textContent = "Klar til at løbe";
+    }
+
+    // 9. YATZY CHALLENGE TASK
     function renderYatzyChallengeTask(container) {
       let dice = [null, null, null, null, null];
       let rolling = false;
