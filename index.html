@@ -599,21 +599,28 @@
     }
 
     function saveEdit() {
+      console.log('saveEdit called, editType:', editType, 'currentTeamIndex:', currentTeamIndex);
       const value = document.getElementById("editInput").value;
+      console.log('Input value:', value);
 
       if (editType === 'name' && value.trim()) {
+        console.log('Saving team name');
         teams[currentTeamIndex].name = value.trim();
         saveData();
         renderScoreboard();
         closeEditModal();
       } else if (editType === 'score') {
         const num = parseInt(value);
+        console.log('Parsed score:', num);
         if (!isNaN(num) && num >= 0) {
+          console.log('Saving team score');
           teams[currentTeamIndex].score = num;
           saveData();
           renderScoreboard();
           closeEditModal();
         }
+      } else {
+        console.log('No valid save condition met');
       }
     }
 
