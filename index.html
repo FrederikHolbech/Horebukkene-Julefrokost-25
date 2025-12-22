@@ -3,24 +3,258 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Min GitHub Pages-side</title>
+  <title>Quiz (15 spørgsmål)</title>
   <style>
-    body { font-family: system-ui, Arial; max-width: 800px; margin: 48px auto; padding: 0 16px; line-height: 1.5; }
-    .card { border: 1px solid #ddd; border-radius: 14px; padding: 18px; }
-    h1 { margin-top: 0; }
-    a { text-decoration: none; }
+    :root{
+      --bg:#0b0d12; --card:rgba(255,255,255,.06); --text:rgba(255,255,255,.92);
+      --muted:rgba(255,255,255,.65); --border:rgba(255,255,255,.12); --accent:#7c5cff;
+      --ok:#24d18f; --bad:#ff5c7a;
+      --shadow:0 20px 60px rgba(0,0,0,.35);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(800px 400px at 20% 0%, rgba(124,92,255,.25), transparent 60%),
+        radial-gradient(800px 400px at 80% 10%, rgba(0,255,209,.12), transparent 60%),
+        var(--bg);
+      min-height:100vh;
+      display:flex; align-items:center; justify-content:center;
+      padding:24px;
+    }
+    .wrap{width:min(900px,100%);}
+    .card{
+      border:1px solid var(--border);
+      background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
+      border-radius:18px;
+      box-shadow:var(--shadow);
+      padding:18px;
+      backdrop-filter: blur(12px);
+    }
+    header{display:flex; gap:12px; justify-content:space-between; align-items:flex-start; flex-wrap:wrap;}
+    h1{margin:0; font-size:20px;}
+    .meta{color:var(--muted); font-size:13px; display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
+    .pill{border:1px solid var(--border); background:rgba(0,0,0,.12); padding:6px 10px; border-radius:999px;}
+    .bar{height:10px; background:rgba(255,255,255,.08); border:1px solid var(--border); border-radius:999px; overflow:hidden;}
+    .bar > div{height:100%; width:0%; background:rgba(124,92,255,.75); transition:width .25s ease;}
+
+    .q{margin-top:14px; font-size:18px; line-height:1.35;}
+    .answers{display:grid; gap:10px; margin-top:14px;}
+    .ans{
+      text-align:left;
+      border:1px solid var(--border);
+      background:var(--card);
+      color:var(--text);
+      padding:12px 12px;
+      border-radius:14px;
+      cursor:pointer;
+      transition:transform .06s ease, border-color .2s ease;
+    }
+    .ans:hover{border-color:rgba(124,92,255,.45)}
+    .ans:active{transform:translateY(1px)}
+    .ans[disabled]{opacity:.75; cursor:not-allowed;}
+    .ans.correct{border-color:rgba(36,209,143,.65); outline:2px solid rgba(36,209,143,.25)}
+    .ans.wrong{border-color:rgba(255,92,122,.65); outline:2px solid rgba(255,92,122,.22)}
+
+    .feedback{margin-top:10px; min-height:22px; color:var(--muted); font-size:14px;}
+    .feedback.ok{color:rgba(36,209,143,.95)}
+    .feedback.bad{color:rgba(255,92,122,.95)}
+
+    .nav{display:flex; justify-content:space-between; gap:10px; margin-top:16px; flex-wrap:wrap;}
+    .btn{
+      border:1px solid var(--border);
+      background:rgba(0,0,0,.12);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      cursor:pointer;
+    }
+    .btn:disabled{opacity:.5; cursor:not-allowed}
+    .btn.primary{background:rgba(124,92,255,.22); border-color:rgba(124,92,255,.45)}
+    .result{
+      margin-top:12px;
+      border:1px dashed var(--border);
+      border-radius:14px;
+      padding:12px;
+      color:var(--muted);
+      display:none;
+    }
+    .result.show{display:block;}
+    .small{font-size:12px; color:var(--muted); margin-top:10px;}
   </style>
 </head>
 <body>
-  <div class="card">
-    <h1>Hej! 👋</h1>
-    <p>Dette er min hjemmeside hostet gratis på GitHub Pages.</p>
-    <p><b>Dato:</b> <span id="d"></span></p>
-    <p><a href="https://github.com/">Mit GitHub</a></p>
+  <div class="wrap">
+    <div class="card">
+      <header>
+        <div>
+          <h1>Quiz</h1>
+          <div class="meta">
+            <span class="pill" id="counter">Spørgsmål 1/15</span>
+            <span class="pill" id="score">Score: 0</span>
+          </div>
+        </div>
+        <div style="width:min(260px,100%);">
+          <div class="bar" aria-label="progress">
+            <div id="barFill"></div>
+          </div>
+          <div class="small" id="barText">0% færdig</div>
+        </div>
+      </header>
+
+      <div class="q" id="questionText">…</div>
+      <div class="answers" id="answers"></div>
+      <div class="feedback" id="feedback"></div>
+
+      <div class="nav">
+        <button class="btn" id="prevBtn">← Forrige</button>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn" id="restartBtn">Prøv igen</button>
+          <button class="btn primary" id="nextBtn">Næste →</button>
+        </div>
+      </div>
+
+      <div class="result" id="resultBox"></div>
+    </div>
   </div>
 
   <script>
-    document.getElementById("d").textContent = new Date().toLocaleDateString("da-DK");
+    // ✅ Redigér dine 15 spørgsmål her.
+    // correctIndex er 0..(answers.length-1)
+    const quiz = [
+      { q: "Hvad er 2 + 2?", answers: ["3","4","5","22"], correctIndex: 1 },
+      { q: "Hvilket sprog kører i browseren?", answers: ["Python","Java","JavaScript","C"], correctIndex: 2 },
+      { q: "Hvad står HTML for?", answers: ["HyperText Markup Language","HighText Machine Language","Hyperlink Text Marking Language","Home Tool Markup Language"], correctIndex: 0 },
+      { q: "CSS bruges primært til…", answers: ["Database","Styling","Serverkode","Komprimering"], correctIndex: 1 },
+      { q: "Hvad er GitHub Pages bedst til?", answers: ["Backend APIs","Statisk hosting","SQL","GPU-træning"], correctIndex: 1 },
+
+      // 10 placeholders – udskift dem med dine egne:
+      { q: "Spørgsmål 6 (udskift mig)", answers: ["A","B","C","D"], correctIndex: 0 },
+      { q: "Spørgsmål 7 (udskift mig)", answers: ["A","B","C","D"], correctIndex: 0 },
+      { q: "Spørgsmål 8 (udskift mig)", answers: ["A","B","C","D"], correctIndex: 0 },
+      { q: "Spørgsmål 9 (udskift mig)", answers: ["A","B","C","D"], correctIndex: 0 },
+      { q: "Spørgsmål 10 (udskift mig)", answers: ["A","B","C","D"], correctIndex: 0 },
+      { q: "Spørgsmål 11 (udskift mig)", answers: ["A","B","C","D"], correctIndex: 0 },
+      { q: "Spørgsmål 12 (udskift mig)", answers: ["A","B","C","D"], correctIndex: 0 },
+      { q: "Spørgsmål 13 (udskift mig)", answers: ["A","B","C","D"], correctIndex: 0 },
+      { q: "Spørgsmål 14 (udskift mig)", answers: ["A","B","C","D"], correctIndex: 0 },
+      { q: "Spørgsmål 15 (udskift mig)", answers: ["A","B","C","D"], correctIndex: 0 },
+    ];
+
+    let i = 0;
+    let score = 0;
+
+    // For at kunne gå frem/tilbage og huske svar:
+    // selections[idx] = valgt svarindex eller null
+    const selections = Array(quiz.length).fill(null);
+
+    const els = {
+      counter: document.getElementById("counter"),
+      score: document.getElementById("score"),
+      barFill: document.getElementById("barFill"),
+      barText: document.getElementById("barText"),
+      questionText: document.getElementById("questionText"),
+      answers: document.getElementById("answers"),
+      feedback: document.getElementById("feedback"),
+      prevBtn: document.getElementById("prevBtn"),
+      nextBtn: document.getElementById("nextBtn"),
+      restartBtn: document.getElementById("restartBtn"),
+      resultBox: document.getElementById("resultBox"),
+    };
+
+    function answeredCount(){
+      return selections.filter(x => x !== null).length;
+    }
+
+    function updateProgress(){
+      const done = answeredCount();
+      const pct = Math.round((done / quiz.length) * 100);
+      els.barFill.style.width = pct + "%";
+      els.barText.textContent = `${pct}% færdig`;
+      els.counter.textContent = `Spørgsmål ${i+1}/${quiz.length}`;
+      els.score.textContent = `Score: ${score}`;
+    }
+
+    function render(){
+      const item = quiz[i];
+      els.questionText.textContent = item.q;
+
+      els.answers.innerHTML = "";
+      els.feedback.className = "feedback";
+      els.feedback.textContent = "";
+
+      const chosen = selections[i];
+
+      item.answers.forEach((txt, idx) => {
+        const b = document.createElement("button");
+        b.className = "ans";
+        b.textContent = txt;
+
+        // Hvis man allerede har svaret på dette spørgsmål:
+        if (chosen !== null) {
+          b.disabled = true;
+          if (idx === item.correctIndex) b.classList.add("correct");
+          if (idx === chosen && chosen !== item.correctIndex) b.classList.add("wrong");
+
+          if (chosen === item.correctIndex) {
+            els.feedback.classList.add("ok");
+            els.feedback.textContent = "✅ Korrekt!";
+          } else {
+            els.feedback.classList.add("bad");
+            els.feedback.textContent = `❌ Forkert. Korrekt svar: ${item.answers[item.correctIndex]}`;
+          }
+        } else {
+          b.addEventListener("click", () => choose(idx));
+        }
+
+        els.answers.appendChild(b);
+      });
+
+      els.prevBtn.disabled = (i === 0);
+      els.nextBtn.disabled = (i === quiz.length - 1);
+
+      updateProgress();
+      updateResultBox();
+    }
+
+    function choose(idx){
+      const item = quiz[i];
+      selections[i] = idx;
+
+      // score logik: +1 hvis korrekt
+      if (idx === item.correctIndex) score++;
+
+      render();
+    }
+
+    function updateResultBox(){
+      const done = answeredCount();
+      if (done < quiz.length){
+        els.resultBox.classList.remove("show");
+        els.resultBox.innerHTML = "";
+        return;
+      }
+      els.resultBox.classList.add("show");
+      const pct = Math.round((score / quiz.length) * 100);
+      els.resultBox.innerHTML = `
+        <b>Færdig!</b><br/>
+        Du fik <b>${score}/${quiz.length}</b> (${pct}%).<br/>
+        ${pct === 100 ? "🏆 Perfekt!" : (pct >= 70 ? "🔥 Stærkt!" : "💪 God start — prøv igen og slå din score.")}
+      `;
+    }
+
+    els.prevBtn.addEventListener("click", () => { if (i > 0) { i--; render(); } });
+    els.nextBtn.addEventListener("click", () => { if (i < quiz.length-1) { i++; render(); } });
+
+    els.restartBtn.addEventListener("click", () => {
+      i = 0;
+      score = 0;
+      for (let k=0; k<selections.length; k++) selections[k] = null;
+      render();
+    });
+
+    render();
   </script>
 </body>
 </html>
