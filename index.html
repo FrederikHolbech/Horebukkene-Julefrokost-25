@@ -537,29 +537,34 @@
     let completedTasks = [];
     const tasks = [
       {
-        title: "Find Sangen",
+        title: "Find Sangen - 10 Point",
         description: "Gæt sangen ud fra emoji! 🎵",
         type: "emoji-songs"
       },
       {
-        title: "Klik Udfordring",
+        title: "Klik Udfordring - 10 Point",
         description: "Tryk på knappen 75+ gange på 10 sekunder! 🖱️",
         type: "click-challenge"
       },
       {
-        title: "Beer Pong Challenge",
+        title: "Beer Pong Challenge - 15 Point",
         description: "Kast bolden i kopperne 4 gange i streg! 🍺",
         type: "beer-pong"
       },
       {
-        title: "Fysiologi Quiz",
+        title: "Fysiologi Quiz - 10 Point",
         description: "Svar på 5 svære spørgsmål om fysiologi! 🧠",
         type: "physiology-quiz"
       },
       {
-        title: "Snyd Værten",
+        title: "Snyd Værten - 5 Point",
         description: "Drik vand eller sambuca - kan værten gætte det? 🥃",
         type: "trick-host"
+      },
+      {
+        title: "Sugerørs Challenge - 5 Point",
+        description: "Drik en øl gennem et sugerør! 🍺🥤",
+        type: "straw-challenge"
       }
     ];
 
@@ -899,6 +904,9 @@
           break;
         case "trick-host":
           renderTrickHostTask(content);
+          break;
+        case "straw-challenge":
+          renderStrawChallengeTask(content);
           break;
         default:
           content.innerHTML = `
@@ -1371,7 +1379,80 @@
       document.getElementById("taskStatus").textContent = "Klar til at snyde!";
     }
 
-    // 6. ROULETTE TASK
+    // 6. STRAW CHALLENGE TASK
+    function renderStrawChallengeTask(container) {
+      let verified = false;
+
+      function render() {
+        container.innerHTML = `
+          <div style="text-align: center;">
+            <div style="font-size: 24px; font-weight: 600; margin-bottom: 30px; line-height: 1.4;">
+              Drik en øl gennem et sugerør! 🍺🥤
+            </div>
+            
+            <div style="font-size: 64px; margin: 40px 0;">
+              🍺 → 🥤 → 😵‍💫
+            </div>
+            
+            <div style="font-size: 18px; color: var(--text); margin: 30px 20px; line-height: 1.6;">
+              En spiller skal drikke en hel øl gennem et sugerør!<br>
+              Værten bekræfter med PIN når opgaven er fuldført.
+            </div>
+            
+            ${!verified ? `
+              <div style="margin-top: 40px;">
+                <input 
+                  type="password" 
+                  id="strawPin" 
+                  placeholder="Indtast PIN..." 
+                  style="width: 200px; padding: 16px; font-size: 18px; border: 2px solid var(--border); border-radius: 12px; background: var(--card); color: var(--text); text-align: center; margin-bottom: 12px;"
+                  onkeypress="if(event.key==='Enter'){event.preventDefault();verifyStraw();}"
+                >
+                <div id="strawError" style="color: var(--bad); font-size: 14px; min-height: 20px; margin-bottom: 12px;"></div>
+                <button class="btn primary" onclick="verifyStraw()">Bekræft ✓</button>
+              </div>
+            ` : `
+              <div style="margin-top: 40px;">
+                <div style="font-size: 28px; color: var(--ok); margin-bottom: 20px;">
+                  ✅ Bekræftet af vært!
+                </div>
+                <button class="btn primary" onclick="strawFinish()">Fortsæt →</button>
+              </div>
+            `}
+          </div>
+        `;
+        if (!verified) {
+          setTimeout(() => document.getElementById("strawPin")?.focus(), 100);
+        }
+      }
+
+      window.verifyStraw = () => {
+        const input = document.getElementById("strawPin")?.value || '';
+        const errorDiv = document.getElementById("strawError");
+
+        if (input === PIN) {
+          verified = true;
+          render();
+        } else {
+          errorDiv.textContent = "Forkert PIN - prøv igen";
+          document.getElementById("strawPin").value = "";
+          setTimeout(() => {
+            errorDiv.textContent = "";
+          }, 2000);
+        }
+      };
+
+      window.strawFinish = () => {
+        container.innerHTML = '<div style="text-align: center; padding: 40px;"><div style="font-size: 32px; margin-bottom: 16px;">🥤</div><div style="font-size: 24px; font-weight: 600;">Sugerørs challenge gennemført!</div></div>';
+        document.getElementById("taskStatus").textContent = "✅ Gennemført";
+        completeTask(currentTaskIndex);
+      };
+
+      render();
+      document.getElementById("taskStatus").textContent = "Klar til at drikke";
+    }
+
+    // 7. ROULETTE TASK
     function renderRouletteTask(container) {
       let spinning = false;
       let result = 0;
