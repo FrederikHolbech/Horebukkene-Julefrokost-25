@@ -537,29 +537,19 @@
     let completedTasks = [];
     const tasks = [
       {
-        title: "Shots Trivia",
-        description: "Hvem kender gruppen bedst? Svar på spørgsmål om jeres venner!",
-        type: "trivia"
-      },
-      {
         title: "Find Sangen",
         description: "Gæt sangen ud fra emoji! 🎵",
         type: "emoji-songs"
       },
       {
-        title: "Shot Roulette",
-        description: "Tal roulette - held og lykke! 🎲",
-        type: "roulette"
+        title: "Klik Udfordring",
+        description: "Tryk på knappen 65+ gange på 10 sekunder! 🖱️",
+        type: "click-challenge"
       },
       {
-        title: "Hvem Ville?",
-        description: "Hvem i gruppen ville mest sandsynligt...?",
-        type: "most-likely"
-      },
-      {
-        title: "Druk eller Sandhed",
-        description: "Besvar spørgsmål eller tag en tår! 🍺",
-        type: "truth-or-drink"
+        title: "Beer Pong Challenge",
+        description: "Kast bolden i koppern 4 gange i streg! 🍺",
+        type: "beer-pong"
       }
     ];
 
@@ -885,20 +875,14 @@
       const content = document.getElementById("taskContent");
 
       switch (task.type) {
-        case "trivia":
-          renderTriviaTask(content);
-          break;
         case "emoji-songs":
           renderEmojiSongsTask(content);
           break;
-        case "roulette":
-          renderRouletteTask(content);
+        case "click-challenge":
+          renderClickChallengeTask(content);
           break;
-        case "most-likely":
-          renderMostLikelyTask(content);
-          break;
-        case "truth-or-drink":
-          renderTruthOrDrinkTask(content);
+        case "beer-pong":
+          renderBeerPongTask(content);
           break;
         default:
           content.innerHTML = `
@@ -926,48 +910,7 @@
 
     // ===== TASK RENDERS =====
 
-    // 1. TRIVIA TASK
-    function renderTriviaTask(container) {
-      const questions = [
-        { q: "Hvem i gruppen har drukket mest i år?", a: "" },
-        { q: "Hvem har kysset flest piger?", a: "" },
-        { q: "Hvem blev sidst inviteret til gruppen?", a: "" },
-        { q: "Hvem har den største sko-størrelse?", a: "" },
-        { q: "Hvem snorker højest?", a: "" }
-      ];
-
-      let currentQ = 0;
-
-      function render() {
-        container.innerHTML = `
-          <div style="text-align: center;">
-            <div style="font-size: 18px; color: var(--muted); margin-bottom: 20px;">
-              Spørgsmål ${currentQ + 1}/${questions.length}
-            </div>
-            <div style="font-size: 24px; font-weight: 600; margin-bottom: 30px; line-height: 1.4;">
-              ${questions[currentQ].q}
-            </div>
-            <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
-              ${currentQ > 0 ? '<button class="btn" onclick="triviaGoBack()">← Forrige</button>' : ''}
-              ${currentQ < questions.length - 1 ? '<button class="btn primary" onclick="triviaNext()">Næste →</button>' : '<button class="btn primary" onclick="triviaFinish()">Færdig! ✓</button>'}
-            </div>
-          </div>
-        `;
-      }
-
-      window.triviaNext = () => { if (currentQ < questions.length - 1) { currentQ++; render(); } };
-      window.triviaGoBack = () => { if (currentQ > 0) { currentQ--; render(); } };
-      window.triviaFinish = () => {
-        container.innerHTML = '<div style="text-align: center; padding: 40px;"><div style="font-size: 32px; margin-bottom: 16px;">🎉</div><div style="font-size: 24px; font-weight: 600;">Godt klaret!</div></div>';
-        document.getElementById("taskStatus").textContent = "✅ Gennemført";
-        completeTask(currentTaskIndex);
-      };
-
-      render();
-      document.getElementById("taskStatus").textContent = "I gang";
-    }
-
-    // 2. EMOJI SONGS TASK
+    // 1. EMOJI SONGS TASK
     function renderEmojiSongsTask(container) {
       const songs = [
         { emoji: "🃏🎰😐", answer: "pokerface", title: "Pokerface - Lady Gaga" },
@@ -1055,7 +998,169 @@
       document.getElementById("taskStatus").textContent = "I gang";
     }
 
-    // 3. ROULETTE TASK
+    // 2. CLICK CHALLENGE TASK
+    function renderClickChallengeTask(container) {
+      let clicks = 0;
+      let timeLeft = 10;
+      let timerInterval = null;
+      let started = false;
+
+      function render() {
+        container.innerHTML = `
+          <div style="text-align: center;">
+            <div style="font-size: 18px; color: var(--muted); margin-bottom: 20px;">
+              Tryk på knappen mere end 65 gange på 10 sekunder!
+            </div>
+            
+            <div style="font-size: 80px; font-weight: 700; color: var(--accent); margin: 30px 0;">
+              ${clicks}
+            </div>
+            
+            <div style="font-size: 32px; font-weight: 600; margin: 20px 0; color: ${timeLeft <= 3 ? 'var(--bad)' : 'var(--text)'};">
+              ${timeLeft}s
+            </div>
+            
+            ${!started ? `
+              <button class="btn primary" onclick="startClicking()" style="font-size: 20px; padding: 20px 40px; margin-top: 20px;">
+                Start! 🚀
+              </button>
+            ` : timeLeft > 0 ? `
+              <button class="btn primary" onclick="incrementClick()" style="font-size: 24px; padding: 30px 60px; margin-top: 20px;">
+                KLIK! 🖱️
+              </button>
+            ` : `
+              <div style="margin-top: 30px;">
+                ${clicks >= 65 ? `
+                  <div style="font-size: 28px; color: var(--ok); margin-bottom: 20px;">
+                    ✅ Du klarede det! ${clicks} klik!
+                  </div>
+                  <button class="btn primary" onclick="clickFinish()">Fortsæt →</button>
+                ` : `
+                  <div style="font-size: 28px; color: var(--bad); margin-bottom: 20px;">
+                    ❌ Ikke nok klik! Kun ${clicks}/65
+                  </div>
+                  <button class="btn" onclick="clickRetry()">Prøv igen</button>
+                `}
+              </div>
+            `}
+          </div>
+        `;
+      }
+
+      window.startClicking = () => {
+        started = true;
+        clicks = 0;
+        timeLeft = 10;
+        render();
+
+        timerInterval = setInterval(() => {
+          timeLeft--;
+          render();
+
+          if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+          }
+        }, 1000);
+      };
+
+      window.incrementClick = () => {
+        if (timeLeft > 0) {
+          clicks++;
+          render();
+        }
+      };
+
+      window.clickRetry = () => {
+        started = false;
+        clicks = 0;
+        timeLeft = 10;
+        if (timerInterval) clearInterval(timerInterval);
+        render();
+      };
+
+      window.clickFinish = () => {
+        container.innerHTML = '<div style="text-align: center; padding: 40px;"><div style="font-size: 32px; margin-bottom: 16px;">🖱️</div><div style="font-size: 24px; font-weight: 600;">Klik-udfordring gennemført!</div></div>';
+        document.getElementById("taskStatus").textContent = "✅ Gennemført";
+        completeTask(currentTaskIndex);
+      };
+
+      render();
+      document.getElementById("taskStatus").textContent = "Klar";
+    }
+
+    // 3. BEER PONG TASK
+    function renderBeerPongTask(container) {
+      let verified = false;
+
+      function render() {
+        container.innerHTML = `
+          <div style="text-align: center;">
+            <div style="font-size: 24px; font-weight: 600; margin-bottom: 30px; line-height: 1.4;">
+              Kast en beer pong bold i koppen 4 gange i streg! 🍺
+            </div>
+            
+            <div style="font-size: 64px; margin: 40px 0;">
+              🏓 → 🥤
+            </div>
+            
+            <div style="font-size: 18px; color: var(--muted); margin: 30px 20px; line-height: 1.6;">
+              Når I har klaret udfordringen, skal værten indtaste PIN-koden for at bekræfte.
+            </div>
+            
+            ${!verified ? `
+              <div style="margin-top: 40px;">
+                <input 
+                  type="password" 
+                  id="beerPongPin" 
+                  placeholder="Indtast PIN..." 
+                  style="width: 200px; padding: 16px; font-size: 18px; border: 2px solid var(--border); border-radius: 12px; background: var(--card); color: var(--text); text-align: center; margin-bottom: 12px;"
+                  onkeypress="if(event.key==='Enter'){event.preventDefault();verifyBeerPong();}"
+                >
+                <div id="beerPongError" style="color: var(--bad); font-size: 14px; min-height: 20px; margin-bottom: 12px;"></div>
+                <button class="btn primary" onclick="verifyBeerPong()">Bekræft ✓</button>
+              </div>
+            ` : `
+              <div style="margin-top: 40px;">
+                <div style="font-size: 28px; color: var(--ok); margin-bottom: 20px;">
+                  ✅ Bekræftet af vært!
+                </div>
+                <button class="btn primary" onclick="beerPongFinish()">Fortsæt →</button>
+              </div>
+            `}
+          </div>
+        `;
+        if (!verified) {
+          setTimeout(() => document.getElementById("beerPongPin")?.focus(), 100);
+        }
+      }
+
+      window.verifyBeerPong = () => {
+        const input = document.getElementById("beerPongPin")?.value || '';
+        const errorDiv = document.getElementById("beerPongError");
+
+        if (input === PIN) {
+          verified = true;
+          render();
+        } else {
+          errorDiv.textContent = "Forkert PIN - prøv igen";
+          document.getElementById("beerPongPin").value = "";
+          setTimeout(() => {
+            errorDiv.textContent = "";
+          }, 2000);
+        }
+      };
+
+      window.beerPongFinish = () => {
+        container.innerHTML = '<div style="text-align: center; padding: 40px;"><div style="font-size: 32px; margin-bottom: 16px;">🍺</div><div style="font-size: 24px; font-weight: 600;">Beer Pong udfordring gennemført!</div></div>';
+        document.getElementById("taskStatus").textContent = "✅ Gennemført";
+        completeTask(currentTaskIndex);
+      };
+
+      render();
+      document.getElementById("taskStatus").textContent = "Klar til at starte";
+    }
+
+    // 4. ROULETTE TASK
     function renderRouletteTask(container) {
       let spinning = false;
       let result = 0;
