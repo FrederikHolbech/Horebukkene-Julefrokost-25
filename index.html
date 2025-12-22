@@ -627,10 +627,13 @@
         const savedTeamIndex = currentTeamIndex;
         const savedAction = currentAction;
 
+        console.log('Saved values - editType:', savedEditType, 'teamIndex:', savedTeamIndex, 'hasAction:', !!savedAction);
+
         closeModal();
 
         // Use setTimeout to ensure modal closes before opening edit modal
         setTimeout(() => {
+          console.log('Inside setTimeout - editType:', savedEditType, 'teamIndex:', savedTeamIndex);
           if (savedAction) {
             console.log('Executing currentAction');
             savedAction();
@@ -641,6 +644,8 @@
           } else if (savedEditType === 'score') {
             console.log('Opening score edit modal for team:', savedTeamIndex);
             showEditModal(`Rediger point for ${teams[savedTeamIndex].name}`, teams[savedTeamIndex].score, 'score');
+          } else {
+            console.log('No matching condition - savedEditType:', savedEditType, 'savedAction:', savedAction);
           }
         }, 150);
       } else {
