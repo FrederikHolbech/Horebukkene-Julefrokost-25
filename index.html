@@ -692,7 +692,7 @@
       },
       {
         title: "Reaktionstest - 10 Point",
-        description: "Tryk når skærmen bliver grøn - under 250ms! ⚡",
+        description: "Tryk når skærmen bliver grøn - under 200ms! ⚡",
         type: "reaction-test"
       }
     ];
@@ -1876,7 +1876,7 @@
       let attempts = 0;
       let bestTime = Infinity;
       const maxAttempts = 3;
-      const targetTime = 100; // 100ms to win
+      const targetTime = 200; // 200ms to win
 
       function startTest() {
         if (gameState === 'ready' || gameState === 'go') return;
