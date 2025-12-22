@@ -2112,7 +2112,11 @@
             if (index > -1) activeTimers.splice(index, 1);
             gameState = 'betting';
           }
-          render();
+          // Only render if we're still on the blackjack task
+          const currentTask = tasks[currentTaskIndex];
+          if (currentTask && currentTask.type === 'blackjack') {
+            render();
+          }
         }, 1000);
         activeTimers.push(cooldownInterval);
       }
@@ -3089,7 +3093,11 @@
             const deviceId = getDeviceId();
             localStorage.removeItem(`slot_cooldown_${deviceId}`);
           }
-          render();
+          // Only render if we're still on the slot machine task
+          const currentTask = tasks[currentTaskIndex];
+          if (currentTask && currentTask.type === 'slot-machine') {
+            render();
+          }
         }, 1000);
         activeTimers.push(cooldownInterval);
       }
