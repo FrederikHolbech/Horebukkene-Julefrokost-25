@@ -525,8 +525,8 @@
         type: "straw-challenge"
       },
       {
-        title: "Yatzy Challenge - 15 Point",
-        description: "Slå yatzy med 6 terninger! 🎲",
+        title: "Yatzy Challenge - 50 Point",
+        description: "Slå yatzy med 5 terninger! 🎲",
         type: "yatzy-challenge"
       }
     ];
@@ -1414,10 +1414,9 @@
 
     // 7. YATZY CHALLENGE TASK
     function renderYatzyChallengeTask(container) {
-      let dice = [null, null, null, null, null, null];
+      let dice = [null, null, null, null, null];
       let rolling = false;
       let attempts = 0;
-      let maxAttempts = 20;
 
       function rollDice() {
         if (rolling) return;
@@ -1452,11 +1451,11 @@
         container.innerHTML = `
           <div style="text-align: center;">
             <div style="font-size: 24px; font-weight: 600; margin-bottom: 20px;">
-              Slå Yatzy med 6 terninger! 🎲
+              Slå Yatzy med 5 terninger! 🎲
             </div>
             
             <div style="font-size: 18px; color: var(--muted); margin-bottom: 30px;">
-              Alle 6 terninger skal vise samme værdi!
+              Alle 5 terninger skal vise samme værdi!
             </div>
             
             <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin: 40px 0;">
@@ -1468,14 +1467,9 @@
                 🎉 YATZY! Du klarede det på ${attempts} forsøg!
               </div>
               <button class="btn primary" onclick="yatzyFinish()">Fortsæt →</button>
-            ` : attempts >= maxAttempts && !rolling ? `
-              <div style="font-size: 24px; color: var(--bad); margin: 30px 0;">
-                ❌ ${maxAttempts} forsøg brugt - prøv igen!
-              </div>
-              <button class="btn" onclick="yatzyReset()">Start forfra</button>
             ` : `
               <div style="font-size: 18px; color: var(--muted); margin: 20px 0;">
-                Forsøg: ${attempts}/${maxAttempts}
+                Forsøg: ${attempts}
               </div>
               <button class="btn primary" onclick="rollYatzy()" ${rolling ? 'disabled' : ''} style="font-size: 20px; padding: 20px 40px;">
                 ${rolling ? 'Ruller...' : '🎲 Slå terningerne!'}
@@ -1489,7 +1483,7 @@
 
 
       window.yatzyReset = () => {
-        dice = [null, null, null, null, null, null];
+        dice = [null, null, null, null, null];
         rolling = false;
         attempts = 0;
         render();
