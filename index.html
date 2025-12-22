@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="da">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Min GitHub Pages-side</title>
+  <style>
+    body { font-family: system-ui, Arial; max-width: 800px; margin: 48px auto; padding: 0 16px; line-height: 1.5; }
+    .card { border: 1px solid #ddd; border-radius: 14px; padding: 18px; }
+    h1 { margin-top: 0; }
+    a { text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Hej! 👋</h1>
+    <p>Dette er min hjemmeside hostet gratis på GitHub Pages.</p>
+    <p><b>Dato:</b> <span id="d"></span></p>
+    <p><a href="https://github.com/">Mit GitHub</a></p>
+  </div>
+
+  <script>
+    document.getElementById("d").textContent = new Date().toLocaleDateString("da-DK");
+  </script>
+</body>
+</html>
