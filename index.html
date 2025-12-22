@@ -519,12 +519,10 @@
 
     function changeScore(idx, delta) {
       currentTeamIndex = idx;
-      currentAction = () => {
-        teams[idx].score = Math.max(0, teams[idx].score + delta);
-        saveData();
-        renderScoreboard();
-      };
-      showPinModal("Indtast PIN for at ændre point");
+      editType = 'scoreChange';
+      // Store the delta for later use
+      changeScore.delta = delta;
+      showPinModal(delta > 0 ? "Indtast PIN for at tilføje point" : "Indtast PIN for at fjerne point");
     }
 
     function editScore(idx) {
@@ -570,9 +568,16 @@
 
     function showEditModal(title, currentValue, type) {
       console.log('showEditModal called:', title, currentValue, type);
+      console.log('currentTeamIndex before showEditModal:', currentTeamIndex);
 
-      // Store editType BEFORE showing modal, so it persists
+      // Store both editType and currentTeamIndex - they were set before calling this
+      // Don't let them get overwritten
+      const teamIndex = currentTeamIndex;
+
       editType = type;
+      currentTeamIndex = teamIndex;
+
+      console.log('After setting - editType:', editType, 'currentTeamIndex:', currentTeamIndex);
 
       const editModal = document.getElementById("editModal");
       const editInput = document.getElementById("editInput");
@@ -588,7 +593,7 @@
       }
 
       editModal.classList.add("show");
-      console.log('Edit modal should be visible now, editType is:', editType);
+      console.log('Edit modal visible, editType:', editType, 'currentTeamIndex:', currentTeamIndex);
 
       setTimeout(() => {
         editInput.focus();
@@ -619,6 +624,21 @@
         if (!isNaN(num) && num >= 0) {
           console.log('Saving team score');
           teams[currentTeamIndex].score = num;
+          saveData();
+          renderScoreboard();
+          closeEditModal();
+        }
+      } else if (editType === 'scoreChange') {
+        const amount = parseInt(value);
+        console.log('Parsed score change amount:', amount);
+        if (!isNaN(amount) && amount > 0) {
+          const delta = changeScore.delta;
+          console.log('Delta:', delta, 'applying change');
+          if (delta > 0) {
+            teams[currentTeamIndex].score += amount;
+          } else {
+            teams[currentTeamIndex].score = Math.max(0, teams[currentTeamIndex].score - amount);
+          }
           saveData();
           renderScoreboard();
           closeEditModal();
@@ -660,10 +680,24 @@
           }
           else if (savedEditType === 'name') {
             console.log('Opening name edit modal for team:', savedTeamIndex);
-            showEditModal(`Rediger ${teams[savedTeamIndex].name}`, teams[savedTeamIndex].name, 'name');
+            // Set currentTeamIndex before calling showEditModal
+            currentTeamIndex = savedTeamIndex;
+            editType = savedEditType;
+            showEditModal(`Rediger ${teams[savedTeamIndex].name}`, teams[savedTeamIndex].name, savedEditType);
           } else if (savedEditType === 'score') {
             console.log('Opening score edit modal for team:', savedTeamIndex);
-            showEditModal(`Rediger point for ${teams[savedTeamIndex].name}`, teams[savedTeamIndex].score, 'score');
+            // Set currentTeamIndex before calling showEditModal
+            currentTeamIndex = savedTeamIndex;
+            editType = savedEditType;
+            showEditModal(`Rediger point for ${teams[savedTeamIndex].name}`, teams[savedTeamIndex].score, savedEditType);
+          } else if (savedEditType === 'scoreChange') {
+            console.log('Opening score change modal for team:', savedTeamIndex);
+            // Set currentTeamIndex before calling showEditModal
+            currentTeamIndex = savedTeamIndex;
+            editType = savedEditType;
+            const delta = changeScore.delta;
+            const action = delta > 0 ? 'Tilføj' : 'Fjern';
+            showEditModal(`${action} point for ${teams[savedTeamIndex].name}`, Math.abs(delta), savedEditType);
           } else {
             console.log('No matching condition - savedEditType:', savedEditType, 'savedAction:', savedAction);
           }
