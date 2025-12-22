@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>HOREBUKKENE - Scoreboard</title>
+  <title>HOREBUKKENE - Julefrokost</title>
   <style>
     :root {
       --bg: #0b0d12;
@@ -31,45 +31,53 @@
         radial-gradient(800px 400px at 80% 10%, rgba(0, 255, 209, .12), transparent 60%),
         var(--bg);
       min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       padding: 24px;
     }
 
     .wrap {
-      width: min(900px, 100%);
-    }
-
-    .card {
-      border: 1px solid var(--border);
-      background: linear-gradient(180deg, rgba(255, 255, 255, .08), rgba(255, 255, 255, .03));
-      border-radius: 18px;
-      box-shadow: var(--shadow);
-      padding: 32px;
-      backdrop-filter: blur(12px);
+      max-width: 1200px;
+      margin: 0 auto;
     }
 
     .brand {
       font-size: 48px;
       line-height: 1.0;
       letter-spacing: -0.03em;
-      margin: 0 0 32px 0;
+      margin: 0 0 24px 0;
       text-transform: uppercase;
+      text-align: center;
+    }
+
+    /* Scoreboard Section */
+    .scoreboard-section {
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255, 255, 255, .08), rgba(255, 255, 255, .03));
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 24px;
+      backdrop-filter: blur(12px);
+      margin-bottom: 24px;
+    }
+
+    .scoreboard-title {
+      font-size: 24px;
+      font-weight: 600;
+      margin: 0 0 16px 0;
       text-align: center;
     }
 
     .scoreboard {
       display: grid;
-      gap: 16px;
-      margin-bottom: 24px;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
     }
 
     .team {
       border: 1px solid var(--border);
       background: rgba(255, 255, 255, .04);
-      border-radius: 14px;
-      padding: 20px;
+      border-radius: 12px;
+      padding: 16px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -82,10 +90,10 @@
     }
 
     .team-name {
-      font-size: 28px;
+      font-size: 20px;
       font-weight: 600;
       cursor: pointer;
-      padding: 8px 12px;
+      padding: 6px 10px;
       border-radius: 8px;
       transition: background .2s;
     }
@@ -97,17 +105,17 @@
     .team-score {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
     }
 
     .score-display {
-      font-size: 42px;
+      font-size: 32px;
       font-weight: 700;
       color: var(--accent);
-      min-width: 80px;
+      min-width: 60px;
       text-align: center;
       cursor: pointer;
-      padding: 8px;
+      padding: 6px;
       border-radius: 8px;
       transition: background .2s;
     }
@@ -117,14 +125,14 @@
     }
 
     .score-btn {
-      width: 40px;
-      height: 40px;
+      width: 36px;
+      height: 36px;
       border: 1px solid var(--border);
       background: rgba(0, 0, 0, .2);
       color: var(--text);
       border-radius: 8px;
       cursor: pointer;
-      font-size: 20px;
+      font-size: 18px;
       font-weight: 700;
       display: flex;
       align-items: center;
@@ -141,27 +149,160 @@
       transform: scale(0.95);
     }
 
-    .controls {
+    .scoreboard-controls {
       display: flex;
       justify-content: center;
       gap: 12px;
-      margin-top: 32px;
+    }
+
+    /* Task Section */
+    .task-section {
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255, 255, 255, .08), rgba(255, 255, 255, .03));
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 32px;
+      backdrop-filter: blur(12px);
+    }
+
+    .task-header {
+      margin-bottom: 24px;
+    }
+
+    .task-meta {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+
+    .pill {
+      border: 1px solid var(--border);
+      background: rgba(0, 0, 0, .12);
+      padding: 6px 12px;
+      border-radius: 999px;
+    }
+
+    .task-title {
+      font-size: 28px;
+      font-weight: 600;
+      margin: 0 0 12px 0;
+    }
+
+    .task-description {
+      font-size: 16px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .task-content {
+      margin: 24px 0;
+    }
+
+    /* Alphabet Task */
+    .alphabet-input {
+      width: 100%;
+      border: 2px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      padding: 16px;
+      border-radius: 14px;
+      font-size: 24px;
+      text-align: center;
+      letter-spacing: 2px;
+      outline: none;
+      backdrop-filter: blur(10px);
+      font-family: monospace;
+      margin-bottom: 16px;
+    }
+
+    .alphabet-input:focus {
+      border-color: var(--accent);
+    }
+
+    .alphabet-input.success {
+      border-color: var(--ok);
+    }
+
+    .alphabet-input.error {
+      border-color: var(--bad);
+    }
+
+    .timer {
+      font-size: 48px;
+      font-weight: 700;
+      text-align: center;
+      margin: 20px 0;
+      color: var(--accent);
+    }
+
+    .timer.warning {
+      color: var(--bad);
+      animation: pulse 0.5s infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.6;
+      }
+    }
+
+    .feedback {
+      text-align: center;
+      font-size: 18px;
+      margin: 16px 0;
+      min-height: 30px;
+    }
+
+    .feedback.ok {
+      color: var(--ok);
+    }
+
+    .feedback.bad {
+      color: var(--bad);
     }
 
     .btn {
       border: 1px solid var(--border);
       background: rgba(0, 0, 0, .12);
       color: var(--text);
-      padding: 12px 20px;
+      padding: 12px 24px;
       border-radius: 12px;
       cursor: pointer;
-      font-size: 15px;
+      font-size: 16px;
       transition: all .2s;
+      font-weight: 500;
     }
 
     .btn:hover {
       background: rgba(124, 92, 255, .2);
       border-color: rgba(124, 92, 255, .4);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn.primary {
+      background: rgba(124, 92, 255, .3);
+      border-color: rgba(124, 92, 255, .5);
+    }
+
+    .task-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 24px;
     }
 
     /* Modal for PIN */
@@ -231,13 +372,36 @@
 
 <body>
   <div class="wrap">
-    <div class="card">
-      <h1 class="brand">🎄 HOREBUKKENE 🎄</h1>
+    <h1 class="brand">🎄 HOREBUKKENE 🎄</h1>
 
+    <!-- Scoreboard -->
+    <div class="scoreboard-section">
+      <h2 class="scoreboard-title">Scoreboard</h2>
       <div class="scoreboard" id="scoreboard"></div>
-
-      <div class="controls">
+      <div class="scoreboard-controls">
         <button class="btn" onclick="resetScores()">Nulstil Point</button>
+      </div>
+    </div>
+
+    <!-- Task Area -->
+    <div class="task-section">
+      <div class="task-header">
+        <div class="task-meta">
+          <span class="pill" id="taskCounter">Opgave 1/5</span>
+          <span class="pill" id="taskStatus">Ikke startet</span>
+        </div>
+        <h2 class="task-title" id="taskTitle">Alfabetet Challenge</h2>
+        <p class="task-description" id="taskDescription">Skriv alfabetet a-z så hurtigt som muligt. Du skal gøre det på
+          under 10 sekunder!</p>
+      </div>
+
+      <div class="task-content" id="taskContent">
+        <!-- Task content will be inserted here -->
+      </div>
+
+      <div class="task-nav">
+        <button class="btn" id="prevTaskBtn" onclick="previousTask()" disabled>← Forrige</button>
+        <button class="btn primary" id="nextTaskBtn" onclick="nextTask()" disabled>Næste →</button>
       </div>
     </div>
   </div>
@@ -255,6 +419,18 @@
     </div>
   </div>
 
+  <!-- Edit Modal -->
+  <div class="modal" id="editModal">
+    <div class="modal-content">
+      <h2 id="editModalTitle">Rediger</h2>
+      <input type="text" id="editInput" placeholder="" />
+      <div class="modal-buttons">
+        <button class="btn" onclick="closeEditModal()">Annuller</button>
+        <button class="btn" onclick="saveEdit()">Gem</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const PIN = "0910";
     let teams = [
@@ -266,8 +442,47 @@
 
     let currentAction = null;
     let currentTeamIndex = null;
+    let editType = null;
 
-    // Load saved data from localStorage
+    // Task system
+    let currentTaskIndex = 0;
+    const tasks = [
+      {
+        title: "Alfabetet Challenge",
+        description: "Skriv alfabetet a-z så hurtigt som muligt. Du skal gøre det på under 10 sekunder!",
+        type: "alphabet",
+        timeLimit: 10
+      },
+      {
+        title: "Opgave 2",
+        description: "Kommende opgave...",
+        type: "placeholder"
+      },
+      {
+        title: "Opgave 3",
+        description: "Kommende opgave...",
+        type: "placeholder"
+      },
+      {
+        title: "Opgave 4",
+        description: "Kommende opgave...",
+        type: "placeholder"
+      },
+      {
+        title: "Opgave 5",
+        description: "Kommende opgave...",
+        type: "placeholder"
+      }
+    ];
+
+    // Alphabet task state
+    let alphabetTimer = null;
+    let alphabetStartTime = null;
+    let alphabetElapsed = 0;
+    let alphabetCompleted = false;
+
+    // ===== SCOREBOARD FUNCTIONS =====
+
     function loadData() {
       const saved = localStorage.getItem("scoreboardData");
       if (saved) {
@@ -303,41 +518,24 @@
     }
 
     function changeScore(idx, delta) {
+      currentTeamIndex = idx;
       currentAction = () => {
         teams[idx].score = Math.max(0, teams[idx].score + delta);
         saveData();
         renderScoreboard();
       };
-      currentTeamIndex = idx;
       showPinModal("Indtast PIN for at ændre point");
     }
 
     function editScore(idx) {
-      currentAction = () => {
-        const newScore = prompt(`Nyt pointtal for ${teams[idx].name}:`, teams[idx].score);
-        if (newScore !== null) {
-          const num = parseInt(newScore);
-          if (!isNaN(num) && num >= 0) {
-            teams[idx].score = num;
-            saveData();
-            renderScoreboard();
-          }
-        }
-      };
       currentTeamIndex = idx;
+      editType = 'score';
       showPinModal("Indtast PIN for at ændre point");
     }
 
     function editTeamName(idx) {
-      currentAction = () => {
-        const newName = prompt(`Nyt navn for ${teams[idx].name}:`, teams[idx].name);
-        if (newName && newName.trim()) {
-          teams[idx].name = newName.trim();
-          saveData();
-          renderScoreboard();
-        }
-      };
       currentTeamIndex = idx;
+      editType = 'name';
       showPinModal("Indtast PIN for at ændre holdnavn");
     }
 
@@ -365,14 +563,61 @@
       document.getElementById("pinModal").classList.remove("show");
       currentAction = null;
       currentTeamIndex = null;
+      editType = null;
+    }
+
+    function showEditModal(title, currentValue, type) {
+      document.getElementById("editModalTitle").textContent = title;
+      document.getElementById("editInput").value = currentValue;
+      if (type === 'score') {
+        document.getElementById("editInput").type = 'number';
+        document.getElementById("editInput").min = '0';
+      } else {
+        document.getElementById("editInput").type = 'text';
+      }
+      document.getElementById("editModal").classList.add("show");
+      document.getElementById("editInput").focus();
+      document.getElementById("editInput").select();
+    }
+
+    function closeEditModal() {
+      document.getElementById("editModal").classList.remove("show");
+      currentTeamIndex = null;
+      editType = null;
+    }
+
+    function saveEdit() {
+      const value = document.getElementById("editInput").value;
+
+      if (editType === 'name' && value.trim()) {
+        teams[currentTeamIndex].name = value.trim();
+        saveData();
+        renderScoreboard();
+        closeEditModal();
+      } else if (editType === 'score') {
+        const num = parseInt(value);
+        if (!isNaN(num) && num >= 0) {
+          teams[currentTeamIndex].score = num;
+          saveData();
+          renderScoreboard();
+          closeEditModal();
+        }
+      }
     }
 
     function verifyPin() {
       const input = document.getElementById("pinInput").value;
       if (input === PIN) {
         closeModal();
+
         if (currentAction) {
           currentAction();
+          currentAction = null;
+        }
+        else if (editType === 'name') {
+          showEditModal(`Rediger ${teams[currentTeamIndex].name}`, teams[currentTeamIndex].name, 'name');
+        } else if (editType === 'score') {
+          showEditModal(`Rediger point for ${teams[currentTeamIndex].name}`, teams[currentTeamIndex].score, 'score');
         }
       } else {
         document.getElementById("errorMsg").textContent = "Forkert PIN - prøv igen";
@@ -381,16 +626,177 @@
       }
     }
 
-    // Enter key in PIN input
-    document.getElementById("pinInput").addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        verifyPin();
+    // ===== TASK FUNCTIONS =====
+
+    function renderTask() {
+      const task = tasks[currentTaskIndex];
+      document.getElementById("taskCounter").textContent = `Opgave ${currentTaskIndex + 1}/${tasks.length}`;
+      document.getElementById("taskTitle").textContent = task.title;
+      document.getElementById("taskDescription").textContent = task.description;
+
+      const content = document.getElementById("taskContent");
+
+      if (task.type === "alphabet") {
+        renderAlphabetTask(content);
+      } else {
+        content.innerHTML = `
+          <div style="text-align: center; padding: 40px; color: var(--muted);">
+            <p style="font-size: 20px;">Denne opgave er endnu ikke tilgængelig</p>
+          </div>
+        `;
+        document.getElementById("taskStatus").textContent = "Ikke tilgængelig";
       }
+
+      // Update navigation buttons
+      document.getElementById("prevTaskBtn").disabled = currentTaskIndex === 0;
+      document.getElementById("nextTaskBtn").disabled = currentTaskIndex === tasks.length - 1;
+    }
+
+    function nextTask() {
+      if (currentTaskIndex < tasks.length - 1) {
+        currentTaskIndex++;
+        renderTask();
+      }
+    }
+
+    function previousTask() {
+      if (currentTaskIndex > 0) {
+        currentTaskIndex--;
+        renderTask();
+      }
+    }
+
+    // ===== ALPHABET TASK =====
+
+    function renderAlphabetTask(container) {
+      container.innerHTML = `
+        <div class="timer" id="alphabetTimer">0.00s</div>
+        <input 
+          type="text" 
+          class="alphabet-input" 
+          id="alphabetInput" 
+          placeholder="Tryk for at starte - skriv alfabetet a-z..."
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <div class="feedback" id="alphabetFeedback"></div>
+        <div style="text-align: center;">
+          <button class="btn" onclick="resetAlphabetTask()">Prøv igen</button>
+        </div>
+      `;
+
+      const input = document.getElementById("alphabetInput");
+      input.addEventListener("input", handleAlphabetInput);
+      input.addEventListener("focus", startAlphabetTimer);
+
+      alphabetCompleted = false;
+      document.getElementById("taskStatus").textContent = "Klar til start";
+    }
+
+    function startAlphabetTimer() {
+      if (alphabetTimer || alphabetCompleted) return;
+
+      alphabetStartTime = Date.now();
+      document.getElementById("taskStatus").textContent = "I gang!";
+
+      alphabetTimer = setInterval(() => {
+        alphabetElapsed = (Date.now() - alphabetStartTime) / 1000;
+        const timerEl = document.getElementById("alphabetTimer");
+        timerEl.textContent = alphabetElapsed.toFixed(2) + "s";
+
+        if (alphabetElapsed > tasks[currentTaskIndex].timeLimit) {
+          timerEl.classList.add("warning");
+        }
+      }, 10);
+    }
+
+    function handleAlphabetInput(e) {
+      if (alphabetCompleted) return;
+
+      const input = e.target;
+      const value = input.value.toLowerCase().replace(/[^a-z]/g, '');
+      input.value = value;
+
+      const expected = "abcdefghijklmnopqrstuvwxyz";
+      const feedback = document.getElementById("alphabetFeedback");
+
+      // Check if correct so far
+      if (value === expected.substring(0, value.length)) {
+        input.classList.remove("error");
+        input.classList.add("success");
+
+        // Check if complete
+        if (value === expected) {
+          completeAlphabetTask(true);
+        }
+      } else {
+        input.classList.add("error");
+        input.classList.remove("success");
+        feedback.className = "feedback bad";
+        feedback.textContent = "Forkert bogstav! Prøv igen.";
+      }
+    }
+
+    function completeAlphabetTask(success) {
+      if (alphabetCompleted) return;
+      alphabetCompleted = true;
+
+      clearInterval(alphabetTimer);
+      alphabetTimer = null;
+
+      const feedback = document.getElementById("alphabetFeedback");
+      const input = document.getElementById("alphabetInput");
+      const timeLimit = tasks[currentTaskIndex].timeLimit;
+
+      input.disabled = true;
+
+      if (success && alphabetElapsed <= timeLimit) {
+        feedback.className = "feedback ok";
+        feedback.textContent = `🎉 Tillykke! Du klarede det på ${alphabetElapsed.toFixed(2)} sekunder!`;
+        document.getElementById("taskStatus").textContent = "✅ Gennemført";
+        document.getElementById("nextTaskBtn").disabled = false;
+      } else if (success) {
+        feedback.className = "feedback bad";
+        feedback.textContent = `⏰ Du brugte ${alphabetElapsed.toFixed(2)} sekunder - for langsomt! Prøv igen.`;
+        document.getElementById("taskStatus").textContent = "For langsom";
+      }
+    }
+
+    function resetAlphabetTask() {
+      clearInterval(alphabetTimer);
+      alphabetTimer = null;
+      alphabetStartTime = null;
+      alphabetElapsed = 0;
+      alphabetCompleted = false;
+
+      const input = document.getElementById("alphabetInput");
+      const timer = document.getElementById("alphabetTimer");
+      const feedback = document.getElementById("alphabetFeedback");
+
+      input.value = "";
+      input.disabled = false;
+      input.classList.remove("success", "error");
+      timer.textContent = "0.00s";
+      timer.classList.remove("warning");
+      feedback.textContent = "";
+      feedback.className = "feedback";
+      document.getElementById("taskStatus").textContent = "Klar til start";
+    }
+
+    // ===== EVENT LISTENERS =====
+
+    document.getElementById("pinInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") verifyPin();
     });
 
-    // Initialize
+    document.getElementById("editInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") saveEdit();
+    });
+
+    // ===== INITIALIZE =====
     loadData();
     renderScoreboard();
+    renderTask();
   </script>
 </body>
 
