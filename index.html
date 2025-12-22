@@ -1686,8 +1686,57 @@
       let deck = [];
       let playerHand = [];
       let dealerHand = [];
-      let gameState = 'betting'; // betting, playing, dealer, finished
+      let gameState = 'betting'; // betting, playing, dealer, finished, cooldown
       let result = '';
+      let timeRemaining = 0;
+      let cooldownInterval = null;
+
+      // Check cooldown for this device
+      function checkCooldown() {
+        const deviceId = getDeviceId();
+        const lastPlayed = localStorage.getItem(`blackjack_cooldown_${deviceId}`);
+
+        if (lastPlayed) {
+          const timeSince = Date.now() - parseInt(lastPlayed);
+          const cooldownTime = 60000; // 60 seconds
+
+          if (timeSince < cooldownTime) {
+            timeRemaining = Math.ceil((cooldownTime - timeSince) / 1000);
+            gameState = 'cooldown';
+            startCooldownTimer();
+            return true;
+          }
+        }
+        return false;
+      }
+
+      // Get or create unique device ID
+      function getDeviceId() {
+        let deviceId = localStorage.getItem('blackjack_device_id');
+        if (!deviceId) {
+          deviceId = 'device_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+          localStorage.setItem('blackjack_device_id', deviceId);
+        }
+        return deviceId;
+      }
+
+      function startCooldownTimer() {
+        if (cooldownInterval) clearInterval(cooldownInterval);
+
+        cooldownInterval = setInterval(() => {
+          timeRemaining--;
+          if (timeRemaining <= 0) {
+            clearInterval(cooldownInterval);
+            gameState = 'betting';
+          }
+          render();
+        }, 1000);
+      }
+
+      function setCooldown() {
+        const deviceId = getDeviceId();
+        localStorage.setItem(`blackjack_cooldown_${deviceId}`, Date.now().toString());
+      }
 
       function createDeck() {
         deck = [];
@@ -1733,6 +1782,11 @@
       }
 
       function startGame() {
+        if (checkCooldown()) {
+          render();
+          return;
+        }
+
         createDeck();
         playerHand = [drawCard(), drawCard()];
         dealerHand = [drawCard(), drawCard()];
@@ -1879,6 +1933,16 @@
               <button class="btn primary" onclick="bjStart()" style="font-size: 20px; padding: 20px 40px;">
                 🎲 Start spil
               </button>
+            ` : gameState === 'cooldown' ? `
+              <div style="font-size: 18px; color: var(--muted); margin-bottom: 30px;">
+                Du har lige spillet. Vent lidt før næste forsøg!
+              </div>
+              <div style="font-size: 48px; font-weight: 700; color: var(--accent); margin: 30px 0;">
+                ${timeRemaining}s
+              </div>
+              <div style="font-size: 16px; color: var(--muted);">
+                Denne enhed kan spille igen om ${timeRemaining} sekund${timeRemaining !== 1 ? 'er' : ''}
+              </div>
             ` : gameState === 'playing' ? `
               <div style="display: flex; gap: 12px; justify-content: center; margin-top: 20px;">
                 <button class="btn" onclick="bjHit()" style="padding: 16px 32px;">🎴 Hit</button>
@@ -1899,17 +1963,26 @@
                   <div style="font-size: 28px; color: var(--bad); margin-bottom: 20px;">
                     💥 BUST! Over 21
                   </div>
-                  <button class="btn" onclick="bjStart()" style="padding: 16px 32px;">Prøv igen</button>
+                  <div style="font-size: 16px; color: var(--muted); margin-bottom: 20px;">
+                    60 sekunders cooldown aktiveret for denne enhed
+                  </div>
+                  <button class="btn" onclick="bjRestart()" style="padding: 16px 32px;">Tilbage</button>
                 ` : result === 'lose' ? `
                   <div style="font-size: 28px; color: var(--bad); margin-bottom: 20px;">
                     ❌ Dealer vandt
                   </div>
-                  <button class="btn" onclick="bjStart()" style="padding: 16px 32px;">Prøv igen</button>
+                  <div style="font-size: 16px; color: var(--muted); margin-bottom: 20px;">
+                    60 sekunders cooldown aktiveret for denne enhed
+                  </div>
+                  <button class="btn" onclick="bjRestart()" style="padding: 16px 32px;">Tilbage</button>
                 ` : `
                   <div style="font-size: 28px; color: var(--muted); margin-bottom: 20px;">
                     🤝 Uafgjort (Push)
                   </div>
-                  <button class="btn" onclick="bjStart()" style="padding: 16px 32px;">Prøv igen</button>
+                  <div style="font-size: 16px; color: var(--muted); margin-bottom: 20px;">
+                    60 sekunders cooldown aktiveret for denne enhed
+                  </div>
+                  <button class="btn" onclick="bjRestart()" style="padding: 16px 32px;">Tilbage</button>
                 `}
               </div>
             `}
@@ -1921,12 +1994,21 @@
       window.bjHit = hit;
       window.bjStand = stand;
 
+      window.bjRestart = () => {
+        setCooldown();
+        checkCooldown();
+        render();
+      };
+
       window.bjFinish = () => {
         container.innerHTML = '<div style="text-align: center; padding: 40px;"><div style="font-size: 48px; margin-bottom: 16px;">🃏</div><div style="font-size: 24px; font-weight: 600;">Blackjack gennemført!</div></div>';
         document.getElementById("taskStatus").textContent = "✅ Gennemført";
+        if (cooldownInterval) clearInterval(cooldownInterval);
         completeTask(currentTaskIndex);
       };
 
+      // Check cooldown on initial render
+      checkCooldown();
       render();
       document.getElementById("taskStatus").textContent = "Klar til at spille";
     }
