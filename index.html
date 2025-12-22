@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Quiz (15 spørgsmål)</title>
+  <title>HOREBUKKENE</title>
   <style>
     :root{
       --bg:#0b0d12; --card:rgba(255,255,255,.06); --text:rgba(255,255,255,.92);
@@ -29,39 +29,40 @@
       background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
       border-radius:18px;
       box-shadow:var(--shadow);
-      padding:18px;
+      padding:20px;
       backdrop-filter: blur(12px);
     }
-    header{display:flex; gap:12px; justify-content:space-between; align-items:flex-start; flex-wrap:wrap;}
-    h1{margin:0; font-size:20px;}
-    .meta{color:var(--muted); font-size:13px; display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
+
+    header{display:flex; flex-direction:column; gap:12px; margin-bottom:14px;}
+    .brand{
+      font-size:42px;
+      line-height:1.0;
+      letter-spacing:-0.03em;
+      margin:0;
+      text-transform:uppercase;
+    }
+    .meta{display:flex; gap:10px; flex-wrap:wrap; align-items:center; color:var(--muted); font-size:13px;}
     .pill{border:1px solid var(--border); background:rgba(0,0,0,.12); padding:6px 10px; border-radius:999px;}
+
     .bar{height:10px; background:rgba(255,255,255,.08); border:1px solid var(--border); border-radius:999px; overflow:hidden;}
     .bar > div{height:100%; width:0%; background:rgba(124,92,255,.75); transition:width .25s ease;}
 
-    .q{margin-top:14px; font-size:18px; line-height:1.35;}
-    .answers{display:grid; gap:10px; margin-top:14px;}
-    .ans{
-      text-align:left;
+    .q{margin-top:10px; font-size:20px; line-height:1.35;}
+    .hint{margin-top:8px; color:var(--muted); font-size:13px;}
+
+    .row{display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; align-items:center;}
+    .input{
+      flex:1;
+      min-width: 220px;
       border:1px solid var(--border);
       background:var(--card);
       color:var(--text);
       padding:12px 12px;
       border-radius:14px;
-      cursor:pointer;
-      transition:transform .06s ease, border-color .2s ease;
+      outline:none;
+      backdrop-filter: blur(10px);
+      font-size:16px;
     }
-    .ans:hover{border-color:rgba(124,92,255,.45)}
-    .ans:active{transform:translateY(1px)}
-    .ans[disabled]{opacity:.75; cursor:not-allowed;}
-    .ans.correct{border-color:rgba(36,209,143,.65); outline:2px solid rgba(36,209,143,.25)}
-    .ans.wrong{border-color:rgba(255,92,122,.65); outline:2px solid rgba(255,92,122,.22)}
-
-    .feedback{margin-top:10px; min-height:22px; color:var(--muted); font-size:14px;}
-    .feedback.ok{color:rgba(36,209,143,.95)}
-    .feedback.bad{color:rgba(255,92,122,.95)}
-
-    .nav{display:flex; justify-content:space-between; gap:10px; margin-top:16px; flex-wrap:wrap;}
     .btn{
       border:1px solid var(--border);
       background:rgba(0,0,0,.12);
@@ -69,9 +70,16 @@
       padding:10px 12px;
       border-radius:12px;
       cursor:pointer;
+      white-space:nowrap;
     }
-    .btn:disabled{opacity:.5; cursor:not-allowed}
     .btn.primary{background:rgba(124,92,255,.22); border-color:rgba(124,92,255,.45)}
+    .btn:disabled{opacity:.5; cursor:not-allowed}
+
+    .feedback{margin-top:10px; min-height:22px; font-size:14px; color:var(--muted);}
+    .feedback.ok{color:rgba(36,209,143,.95)}
+    .feedback.bad{color:rgba(255,92,122,.95)}
+
+    .nav{display:flex; justify-content:space-between; gap:10px; margin-top:16px; flex-wrap:wrap;}
     .result{
       margin-top:12px;
       border:1px dashed var(--border);
@@ -81,37 +89,42 @@
       display:none;
     }
     .result.show{display:block;}
-    .small{font-size:12px; color:var(--muted); margin-top:10px;}
+    .small{font-size:12px; color:var(--muted);}
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="card">
       <header>
-        <div>
-          <h1>Quiz</h1>
-          <div class="meta">
-            <span class="pill" id="counter">Spørgsmål 1/15</span>
-            <span class="pill" id="score">Score: 0</span>
-          </div>
+        <h1 class="brand">HOREBUKKENE</h1>
+
+        <div class="meta">
+          <span class="pill" id="counter">1/15</span>
+          <span class="pill" id="score">Score: 0</span>
+          <span class="pill" id="status">Skriv svaret for at gå videre</span>
         </div>
-        <div style="width:min(260px,100%);">
-          <div class="bar" aria-label="progress">
-            <div id="barFill"></div>
-          </div>
-          <div class="small" id="barText">0% færdig</div>
+
+        <div class="bar" aria-label="progress">
+          <div id="barFill"></div>
         </div>
+        <div class="small" id="barText">0% færdig</div>
       </header>
 
       <div class="q" id="questionText">…</div>
-      <div class="answers" id="answers"></div>
+      <div class="hint" id="hintText"></div>
+
+      <div class="row">
+        <input class="input" id="answerInput" placeholder="Skriv dit svar her…" autocomplete="off" />
+        <button class="btn" id="checkBtn">Tjek</button>
+      </div>
+
       <div class="feedback" id="feedback"></div>
 
       <div class="nav">
         <button class="btn" id="prevBtn">← Forrige</button>
         <div style="display:flex; gap:10px; flex-wrap:wrap;">
           <button class="btn" id="restartBtn">Prøv igen</button>
-          <button class="btn primary" id="nextBtn">Næste →</button>
+          <button class="btn primary" id="nextBtn" disabled>Næste →</button>
         </div>
       </div>
 
@@ -121,41 +134,45 @@
 
   <script>
     // ✅ Redigér dine 15 spørgsmål her.
-    // correctIndex er 0..(answers.length-1)
+    // answer: det korrekte svar (fritekst)
+    // accept: (valgfrit) ekstra acceptable svar
+    // hint: (valgfrit) en lille hjælp under spørgsmålet
     const quiz = [
-      { q: "Hvad er 2 + 2?", answers: ["3","4","5","22"], correctIndex: 1 },
-      { q: "Hvilket sprog kører i browseren?", answers: ["Python","Java","JavaScript","C"], correctIndex: 2 },
-      { q: "Hvad står HTML for?", answers: ["HyperText Markup Language","HighText Machine Language","Hyperlink Text Marking Language","Home Tool Markup Language"], correctIndex: 0 },
-      { q: "CSS bruges primært til…", answers: ["Database","Styling","Serverkode","Komprimering"], correctIndex: 1 },
-      { q: "Hvad er GitHub Pages bedst til?", answers: ["Backend APIs","Statisk hosting","SQL","GPU-træning"], correctIndex: 1 },
+      { q: "Hvad er 2 + 2?", answer: "4", accept: ["fire"], hint: "Et tal." },
+      { q: "Hvad hedder sproget der kører i browseren?", answer: "javascript", accept: ["js"], hint: "Starter med J." },
+      { q: "Hvad står HTML for?", answer: "hypertext markup language", accept: ["hyper text markup language"], hint: "Tre ord." },
 
-      // 10 placeholders – udskift dem med dine egne:
-      { q: "Spørgsmål 6 (udskift mig)", answers: ["A","B","C","D"], correctIndex: 0 },
-      { q: "Spørgsmål 7 (udskift mig)", answers: ["A","B","C","D"], correctIndex: 0 },
-      { q: "Spørgsmål 8 (udskift mig)", answers: ["A","B","C","D"], correctIndex: 0 },
-      { q: "Spørgsmål 9 (udskift mig)", answers: ["A","B","C","D"], correctIndex: 0 },
-      { q: "Spørgsmål 10 (udskift mig)", answers: ["A","B","C","D"], correctIndex: 0 },
-      { q: "Spørgsmål 11 (udskift mig)", answers: ["A","B","C","D"], correctIndex: 0 },
-      { q: "Spørgsmål 12 (udskift mig)", answers: ["A","B","C","D"], correctIndex: 0 },
-      { q: "Spørgsmål 13 (udskift mig)", answers: ["A","B","C","D"], correctIndex: 0 },
-      { q: "Spørgsmål 14 (udskift mig)", answers: ["A","B","C","D"], correctIndex: 0 },
-      { q: "Spørgsmål 15 (udskift mig)", answers: ["A","B","C","D"], correctIndex: 0 },
+      // 12 placeholders – udskift med dine egne:
+      { q: "Spørgsmål 4 (udskift mig)", answer: "a", accept: [], hint: "" },
+      { q: "Spørgsmål 5 (udskift mig)", answer: "a", accept: [], hint: "" },
+      { q: "Spørgsmål 6 (udskift mig)", answer: "a", accept: [], hint: "" },
+      { q: "Spørgsmål 7 (udskift mig)", answer: "a", accept: [], hint: "" },
+      { q: "Spørgsmål 8 (udskift mig)", answer: "a", accept: [], hint: "" },
+      { q: "Spørgsmål 9 (udskift mig)", answer: "a", accept: [], hint: "" },
+      { q: "Spørgsmål 10 (udskift mig)", answer: "a", accept: [], hint: "" },
+      { q: "Spørgsmål 11 (udskift mig)", answer: "a", accept: [], hint: "" },
+      { q: "Spørgsmål 12 (udskift mig)", answer: "a", accept: [], hint: "" },
+      { q: "Spørgsmål 13 (udskift mig)", answer: "a", accept: [], hint: "" },
+      { q: "Spørgsmål 14 (udskift mig)", answer: "a", accept: [], hint: "" },
+      { q: "Spørgsmål 15 (udskift mig)", answer: "a", accept: [], hint: "" },
     ];
 
     let i = 0;
     let score = 0;
 
-    // For at kunne gå frem/tilbage og huske svar:
-    // selections[idx] = valgt svarindex eller null
-    const selections = Array(quiz.length).fill(null);
+    // locked[idx] = true når spørgsmålet er bestået (så kan man gå videre)
+    const locked = Array(quiz.length).fill(false);
 
     const els = {
       counter: document.getElementById("counter"),
       score: document.getElementById("score"),
+      status: document.getElementById("status"),
       barFill: document.getElementById("barFill"),
       barText: document.getElementById("barText"),
       questionText: document.getElementById("questionText"),
-      answers: document.getElementById("answers"),
+      hintText: document.getElementById("hintText"),
+      answerInput: document.getElementById("answerInput"),
+      checkBtn: document.getElementById("checkBtn"),
       feedback: document.getElementById("feedback"),
       prevBtn: document.getElementById("prevBtn"),
       nextBtn: document.getElementById("nextBtn"),
@@ -163,74 +180,100 @@
       resultBox: document.getElementById("resultBox"),
     };
 
-    function answeredCount(){
-      return selections.filter(x => x !== null).length;
+    function norm(s){
+      return (s ?? "")
+        .toString()
+        .trim()
+        .toLowerCase()
+        // gør det lidt mere tolerant:
+        .replace(/\s+/g, " ");
+    }
+
+    function passedCount(){
+      return locked.filter(Boolean).length;
     }
 
     function updateProgress(){
-      const done = answeredCount();
+      els.counter.textContent = `${i+1}/${quiz.length}`;
+      els.score.textContent = `Score: ${score}`;
+
+      const done = passedCount();
       const pct = Math.round((done / quiz.length) * 100);
       els.barFill.style.width = pct + "%";
       els.barText.textContent = `${pct}% færdig`;
-      els.counter.textContent = `Spørgsmål ${i+1}/${quiz.length}`;
-      els.score.textContent = `Score: ${score}`;
+
+      els.prevBtn.disabled = (i === 0);
+      els.nextBtn.disabled = !locked[i] || (i === quiz.length - 1);
     }
 
     function render(){
       const item = quiz[i];
-      els.questionText.textContent = item.q;
 
-      els.answers.innerHTML = "";
+      els.questionText.textContent = item.q;
+      els.hintText.textContent = item.hint ? `Hint: ${item.hint}` : "";
+
       els.feedback.className = "feedback";
       els.feedback.textContent = "";
 
-      const chosen = selections[i];
+      els.answerInput.value = "";
+      els.answerInput.disabled = locked[i];
+      els.checkBtn.disabled = locked[i];
 
-      item.answers.forEach((txt, idx) => {
-        const b = document.createElement("button");
-        b.className = "ans";
-        b.textContent = txt;
+      els.status.textContent = locked[i]
+        ? "✅ Godkendt — du kan gå videre"
+        : "Skriv svaret for at gå videre";
 
-        // Hvis man allerede har svaret på dette spørgsmål:
-        if (chosen !== null) {
-          b.disabled = true;
-          if (idx === item.correctIndex) b.classList.add("correct");
-          if (idx === chosen && chosen !== item.correctIndex) b.classList.add("wrong");
-
-          if (chosen === item.correctIndex) {
-            els.feedback.classList.add("ok");
-            els.feedback.textContent = "✅ Korrekt!";
-          } else {
-            els.feedback.classList.add("bad");
-            els.feedback.textContent = `❌ Forkert. Korrekt svar: ${item.answers[item.correctIndex]}`;
-          }
-        } else {
-          b.addEventListener("click", () => choose(idx));
-        }
-
-        els.answers.appendChild(b);
-      });
-
-      els.prevBtn.disabled = (i === 0);
-      els.nextBtn.disabled = (i === quiz.length - 1);
+      if (locked[i]) {
+        els.feedback.classList.add("ok");
+        els.feedback.textContent = "✅ Rigtigt! Du må gerne gå videre.";
+      }
 
       updateProgress();
       updateResultBox();
+      els.answerInput.focus();
     }
 
-    function choose(idx){
+    function isCorrect(input, item){
+      const n = norm(input);
+      const good = norm(item.answer);
+      const extra = (item.accept || []).map(norm);
+      return n === good || extra.includes(n);
+    }
+
+    function check(){
       const item = quiz[i];
-      selections[i] = idx;
+      const input = els.answerInput.value;
 
-      // score logik: +1 hvis korrekt
-      if (idx === item.correctIndex) score++;
+      els.feedback.className = "feedback";
 
-      render();
+      if (!norm(input)) {
+        els.feedback.classList.add("bad");
+        els.feedback.textContent = "Skriv et svar først 🙂";
+        return;
+      }
+
+      if (isCorrect(input, item)) {
+        if (!locked[i]) score++;         // 1 point første gang du består spørgsmålet
+        locked[i] = true;
+
+        els.feedback.classList.add("ok");
+        els.feedback.textContent = "✅ Korrekt! Nu kan du gå videre.";
+        els.answerInput.disabled = true;
+        els.checkBtn.disabled = true;
+
+        // lås op for næste
+        els.nextBtn.disabled = (i === quiz.length - 1);
+        els.status.textContent = "✅ Godkendt — du kan gå videre";
+        updateProgress();
+        updateResultBox();
+      } else {
+        els.feedback.classList.add("bad");
+        els.feedback.textContent = "❌ Forkert — prøv igen.";
+      }
     }
 
     function updateResultBox(){
-      const done = answeredCount();
-      if (done < quiz.length){
+      if (passedCount() < quiz.length) {
         els.resultBox.classList.remove("show");
         els.resultBox.innerHTML = "";
         return;
@@ -240,17 +283,23 @@
       els.resultBox.innerHTML = `
         <b>Færdig!</b><br/>
         Du fik <b>${score}/${quiz.length}</b> (${pct}%).<br/>
-        ${pct === 100 ? "🏆 Perfekt!" : (pct >= 70 ? "🔥 Stærkt!" : "💪 God start — prøv igen og slå din score.")}
+        🏁
       `;
     }
 
+    els.checkBtn.addEventListener("click", check);
+    els.answerInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") check();
+    });
+
     els.prevBtn.addEventListener("click", () => { if (i > 0) { i--; render(); } });
-    els.nextBtn.addEventListener("click", () => { if (i < quiz.length-1) { i++; render(); } });
+    els.nextBtn.addEventListener("click", () => {
+      if (i < quiz.length - 1 && locked[i]) { i++; render(); }
+    });
 
     els.restartBtn.addEventListener("click", () => {
-      i = 0;
-      score = 0;
-      for (let k=0; k<selections.length; k++) selections[k] = null;
+      i = 0; score = 0;
+      for (let k=0; k<locked.length; k++) locked[k] = false;
       render();
     });
 
