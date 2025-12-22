@@ -550,6 +550,16 @@
         type: "blackjack"
       },
       {
+        title: "Shot Roulette - 5 Point",
+        description: "Spin hjulet og drik hvad det lander på! 🎰🥃",
+        type: "shot-roulette"
+      },
+      {
+        title: "Slot Machine - 10 Point",
+        description: "Få tre ens på spilleautomaten! 🎰",
+        type: "slot-machine"
+      },
+      {
         title: "Yatzy Challenge - 50 Point",
         description: "Slå yatzy med 5 terninger! 🎲",
         type: "yatzy-challenge"
@@ -904,6 +914,12 @@
           break;
         case "blackjack":
           renderBlackjackTask(content);
+          break;
+        case "shot-roulette":
+          renderShotRouletteTask(content);
+          break;
+        case "slot-machine":
+          renderSlotMachineTask(content);
           break;
         case "yatzy-challenge":
           renderYatzyChallengeTask(content);
@@ -2308,8 +2324,269 @@
       document.getElementById("taskStatus").textContent = "Klar til at spille";
     }
 
-    // 12. BLACKJACK TASK
-    function renderBlackjackTask(container) {
+    // 13. SHOT ROULETTE TASK
+    function renderShotRouletteTask(container) {
+      let spinning = false;
+      let result = null;
+      let verified = false;
+
+      const drinks = [
+        { name: "Olivenolie", weight: 20, emoji: "🫒" },
+        { name: "Snaps", weight: 30, emoji: "🥃" },
+        { name: "Remo", weight: 15, emoji: "🍸" },
+        { name: "Fernet", weight: 30, emoji: "🥃" },
+        { name: "Vand", weight: 5, emoji: "💧" }
+      ];
+
+      function spin() {
+        if (spinning) return;
+        spinning = true;
+        verified = false;
+        result = null;
+
+        let spinCount = 0;
+        const maxSpins = 20;
+        let currentIndex = 0;
+
+        const interval = setInterval(() => {
+          currentIndex = (currentIndex + 1) % drinks.length;
+          render();
+          spinCount++;
+
+          if (spinCount >= maxSpins) {
+            clearInterval(interval);
+            // Weighted random selection
+            const totalWeight = drinks.reduce((sum, d) => sum + d.weight, 0);
+            let random = Math.random() * totalWeight;
+
+            for (let drink of drinks) {
+              random -= drink.weight;
+              if (random <= 0) {
+                result = drink;
+                break;
+              }
+            }
+
+            spinning = false;
+            render();
+          }
+        }, 100);
+      }
+
+      function render() {
+        container.innerHTML = `
+          <div style="text-align: center;">
+            <div style="font-size: 24px; font-weight: 600; margin-bottom: 20px;">
+              Shot Roulette 🎰
+            </div>
+            
+            <div style="font-size: 18px; color: var(--muted); margin-bottom: 30px; line-height: 1.6;">
+              Spin hjulet og drik hvad det lander på!<br>
+              Værten godkender når du har drukket.
+            </div>
+            
+            ${!result && !spinning ? `
+              <div style="margin: 40px 0;">
+                <div style="font-size: 64px; margin-bottom: 20px;">🎰</div>
+                <button class="btn primary" onclick="shotSpin()" style="font-size: 20px; padding: 20px 40px;">
+                  🎲 Spin hjulet!
+                </button>
+              </div>
+            ` : spinning ? `
+              <div style="margin: 40px 0;">
+                <div style="font-size: 72px; animation: spin 0.5s linear infinite;">
+                  🎰
+                </div>
+                <div style="font-size: 20px; color: var(--accent); margin-top: 20px;">
+                  Spinner...
+                </div>
+              </div>
+              <style>
+                @keyframes spin {
+                  from { transform: rotate(0deg); }
+                  to { transform: rotate(360deg); }
+                }
+              </style>
+            ` : result && !verified ? `
+              <div style="margin: 40px 0;">
+                <div style="font-size: 80px; margin-bottom: 20px;">${result.emoji}</div>
+                <div style="font-size: 32px; font-weight: 700; color: var(--accent); margin-bottom: 30px;">
+                  ${result.name}!
+                </div>
+                <div style="font-size: 18px; color: var(--muted); margin-bottom: 20px;">
+                  Drik dit shot og få værten til at bekræfte
+                </div>
+                
+                <div style="max-width: 300px; margin: 30px auto;">
+                  <div style="font-size: 18px; margin-bottom: 12px; color: var(--text);">
+                    Vært PIN-kode:
+                  </div>
+                  <input 
+                    type="password" 
+                    id="shotPin" 
+                    placeholder="Indtast PIN" 
+                    style="width: 100%; padding: 16px; font-size: 18px; border: 2px solid var(--border); border-radius: 12px; background: var(--card); color: var(--text); text-align: center;"
+                    onkeypress="if(event.key==='Enter'){event.preventDefault();verifyShotRoulette();}"
+                  >
+                  <div id="shotError" style="color: var(--bad); margin-top: 12px; min-height: 24px;"></div>
+                  <button class="btn primary" onclick="verifyShotRoulette()" style="margin-top: 20px; width: 100%;">✅ Bekræft</button>
+                </div>
+              </div>
+            ` : `
+              <div style="margin: 40px 0;">
+                <div style="font-size: 28px; color: var(--ok); margin-bottom: 20px;">
+                  ✅ Bekræftet af vært!
+                </div>
+                <button class="btn primary" onclick="shotFinish()">Fortsæt →</button>
+              </div>
+            `}
+          </div>
+        `;
+        if (result && !verified && !spinning) {
+          setTimeout(() => document.getElementById("shotPin")?.focus(), 100);
+        }
+      }
+
+      window.shotSpin = spin;
+
+      window.verifyShotRoulette = () => {
+        const input = document.getElementById("shotPin")?.value || '';
+        const errorDiv = document.getElementById("shotError");
+
+        if (input === PIN) {
+          verified = true;
+          render();
+        } else {
+          errorDiv.textContent = "Forkert PIN - prøv igen";
+          document.getElementById("shotPin").value = "";
+          setTimeout(() => {
+            errorDiv.textContent = "";
+          }, 2000);
+        }
+      };
+
+      window.shotFinish = () => {
+        container.innerHTML = '<div style="text-align: center; padding: 40px;"><div style="font-size: 48px; margin-bottom: 16px;">🎰</div><div style="font-size: 24px; font-weight: 600;">Shot roulette gennemført!</div></div>';
+        document.getElementById("taskStatus").textContent = "✅ Gennemført";
+        completeTask(currentTaskIndex);
+      };
+
+      render();
+      document.getElementById("taskStatus").textContent = "Klar til at spinde";
+    }
+
+    // 14. SLOT MACHINE TASK
+    function renderSlotMachineTask(container) {
+      let spinning = false;
+      let reels = ['🍒', '🍋', '🍇'];
+      let attempts = 0;
+
+      const symbols = ['🍒', '🍋', '🍇', '🍑', '⭐', '🔔', '💰'];
+
+      function spin() {
+        if (spinning) return;
+        spinning = true;
+        attempts++;
+
+        let spinCount = 0;
+        const maxSpins = 20;
+
+        const interval = setInterval(() => {
+          reels = [
+            symbols[Math.floor(Math.random() * symbols.length)],
+            symbols[Math.floor(Math.random() * symbols.length)],
+            symbols[Math.floor(Math.random() * symbols.length)]
+          ];
+          render();
+          spinCount++;
+
+          if (spinCount >= maxSpins) {
+            clearInterval(interval);
+            spinning = false;
+            render();
+          }
+        }, 100);
+      }
+
+      function checkWin() {
+        return reels[0] === reels[1] && reels[1] === reels[2];
+      }
+
+      function render() {
+        const isWin = checkWin();
+
+        container.innerHTML = `
+          <div style="text-align: center;">
+            <div style="font-size: 24px; font-weight: 600; margin-bottom: 20px;">
+              Slot Machine 🎰
+            </div>
+            
+            <div style="font-size: 18px; color: var(--muted); margin-bottom: 30px;">
+              Få tre ens symboler for at vinde!
+            </div>
+            
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px; border-radius: 20px; margin: 30px auto; max-width: 400px; box-shadow: 0 8px 16px rgba(0,0,0,0.3);">
+              <div style="display: flex; gap: 20px; justify-content: center; margin: 20px 0;">
+                ${reels.map(symbol => `
+                  <div style="
+                    background: white;
+                    width: 100px;
+                    height: 100px;
+                    border-radius: 12px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 60px;
+                    box-shadow: inset 0 2px 8px rgba(0,0,0,0.1);
+                    ${spinning ? 'animation: slotSpin 0.1s linear infinite;' : ''}
+                  ">
+                    ${symbol}
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+            
+            <style>
+              @keyframes slotSpin {
+                0%, 100% { transform: translateY(0px); }
+                50% { transform: translateY(-5px); }
+              }
+            </style>
+            
+            ${isWin && !spinning ? `
+              <div style="font-size: 32px; color: var(--ok); margin: 30px 0; font-weight: 600;">
+                🎉 JACKPOT!
+              </div>
+              <div style="font-size: 20px; margin: 10px 0; color: var(--muted);">
+                Forsøg: ${attempts}
+              </div>
+              <button class="btn primary" onclick="slotFinish()" style="margin-top: 20px;">Fortsæt →</button>
+            ` : `
+              <div style="font-size: 18px; color: var(--muted); margin: 20px 0;">
+                Forsøg: ${attempts}
+              </div>
+              <button class="btn primary" onclick="slotSpin()" ${spinning ? 'disabled' : ''} style="font-size: 20px; padding: 20px 40px;">
+                ${spinning ? 'Spinner...' : '🎰 Spin!'}
+              </button>
+            `}
+          </div>
+        `;
+      }
+
+      window.slotSpin = spin;
+
+      window.slotFinish = () => {
+        container.innerHTML = '<div style="text-align: center; padding: 40px;"><div style="font-size: 48px; margin-bottom: 16px;">🎰</div><div style="font-size: 24px; font-weight: 600;">Slot machine gennemført!</div></div>';
+        document.getElementById("taskStatus").textContent = "✅ Gennemført";
+        completeTask(currentTaskIndex);
+      };
+
+      render();
+      document.getElementById("taskStatus").textContent = "Klar til at spille";
+    }
+
+    // 15. YATZY CHALLENGE TASK
+    function renderYatzyChallengeTask(container) {
       let spinning = false;
       let result = 0;
 
@@ -2358,96 +2635,6 @@
         completeTask(currentTaskIndex);
       };
       document.getElementById("taskStatus").textContent = "Klar til spin";
-    }
-
-    // 4. MOST LIKELY TASK
-    function renderMostLikelyTask(container) {
-      const questions = [
-        "Hvem ville mest sandsynligt falde i søvn først til en fest?",
-        "Hvem ville mest sandsynligt overleve en zombie-apokalypse?",
-        "Hvem ville mest sandsynligt blive millionær?",
-        "Hvem ville mest sandsynligt ende i fængsel?",
-        "Hvem ville mest sandsynligt gifte sig først?",
-        "Hvem ville mest sandsynligt spise det væmmeligste?",
-        "Hvem ville mest sandsynligt blive berømt?",
-        "Hvem ville mest sandsynligt glemme deres egen fødselsdag?"
-      ];
-
-      let currentQ = 0;
-
-      function render() {
-        container.innerHTML = `
-          <div style="text-align: center;">
-            <div style="font-size: 18px; color: var(--muted); margin-bottom: 20px;">
-              Spørgsmål ${currentQ + 1}/${questions.length}
-            </div>
-            <div style="font-size: 24px; font-weight: 600; margin: 40px 20px; line-height: 1.5;">
-              ${questions[currentQ]}
-            </div>
-            <div style="font-size: 16px; color: var(--muted); margin: 30px 0;">
-              Point på personen når I er klar!
-            </div>
-            <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 40px;">
-              ${currentQ < questions.length - 1 ? '<button class="btn primary" onclick="mostLikelyNext()">Næste →</button>' : '<button class="btn primary" onclick="mostLikelyFinish()">Færdig! ✓</button>'}
-            </div>
-          </div>
-        `;
-      }
-
-      window.mostLikelyNext = () => { if (currentQ < questions.length - 1) { currentQ++; render(); } };
-      window.mostLikelyFinish = () => {
-        container.innerHTML = '<div style="text-align: center; padding: 40px;"><div style="font-size: 32px; margin-bottom: 16px;">👆</div><div style="font-size: 24px; font-weight: 600;">Alle spørgsmål gennemgået!</div></div>';
-        document.getElementById("taskStatus").textContent = "✅ Gennemført";
-        completeTask(currentTaskIndex);
-      };
-
-      render();
-      document.getElementById("taskStatus").textContent = "I gang";
-    }
-
-    // 5. TRUTH OR DRINK TASK
-    function renderTruthOrDrinkTask(container) {
-      const questions = [
-        "Hvad er det mest pinlige, du har gjort til en fest?",
-        "Hvem i rummet ville du kysse, hvis du skulle?",
-        "Hvad er din hemmelige guilty pleasure?",
-        "Hvad er det vildeste sted, du har haft sex?",
-        "Hvem var din første kæreste, og hvorfor sluttede det?",
-        "Hvad er den værste løgn, du har fortalt dine forældre?",
-        "Hvad er det mest ulovlige, du har gjort?",
-        "Hvis du kun kunne se én person her igen, hvem ville det være?"
-      ];
-
-      let currentQ = 0;
-
-      function render() {
-        container.innerHTML = `
-          <div style="text-align: center;">
-            <div style="font-size: 18px; color: var(--muted); margin-bottom: 20px;">
-              Spørgsmål ${currentQ + 1}/${questions.length}
-            </div>
-            <div style="font-size: 24px; font-weight: 600; margin: 40px 20px; line-height: 1.5;">
-              ${questions[currentQ]}
-            </div>
-            <div style="font-size: 16px; color: var(--muted); margin: 30px 0;">
-              Besvar ærligt eller tag en stor slurk! 🍺
-            </div>
-            <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 40px;">
-              ${currentQ < questions.length - 1 ? '<button class="btn primary" onclick="truthNext()">Næste →</button>' : '<button class="btn primary" onclick="truthFinish()">Færdig! ✓</button>'}
-            </div>
-          </div>
-        `;
-      }
-
-      window.truthNext = () => { if (currentQ < questions.length - 1) { currentQ++; render(); } };
-      window.truthFinish = () => {
-        container.innerHTML = '<div style="text-align: center; padding: 40px;"><div style="font-size: 32px; margin-bottom: 16px;">🍻</div><div style="font-size: 24px; font-weight: 600;">I overlevede!</div></div>';
-        document.getElementById("taskStatus").textContent = "✅ Gennemført";
-        completeTask(currentTaskIndex);
-      };
-
-      render();
-      document.getElementById("taskStatus").textContent = "I gang";
     }
 
     // ===== EVENT LISTENERS =====
