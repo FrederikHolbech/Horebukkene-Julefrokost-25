@@ -523,12 +523,12 @@
         type: "blackjack"
       },
       {
-        title: "Shot Roulette - 5 Point",
+        title: "Shot Hjulet - 5 Point",
         description: "Spin hjulet og drik hvad det lander på! 🎰🥃",
         type: "shot-roulette"
       },
       {
-        title: "Slot Machine - 10 Point",
+        title: "Slotmaskine - 15 Point",
         description: "Få tre ens på spilleautomaten! 🎰",
         type: "slot-machine"
       },
@@ -1698,7 +1698,7 @@
 
         if (lastPlayed) {
           const timeSince = Date.now() - parseInt(lastPlayed);
-          const cooldownTime = 60000; // 60 seconds
+          const cooldownTime = 30000; // 30 seconds
 
           if (timeSince < cooldownTime) {
             timeRemaining = Math.ceil((cooldownTime - timeSince) / 1000);
@@ -1964,7 +1964,7 @@
                     💥 BUST! Over 21
                   </div>
                   <div style="font-size: 16px; color: var(--muted); margin-bottom: 20px;">
-                    60 sekunders cooldown aktiveret for denne enhed
+                    30 sekunders cooldown aktiveret for denne enhed
                   </div>
                   <button class="btn" onclick="bjRestart()" style="padding: 16px 32px;">Tilbage</button>
                 ` : result === 'lose' ? `
@@ -1972,7 +1972,7 @@
                     ❌ Dealer vandt
                   </div>
                   <div style="font-size: 16px; color: var(--muted); margin-bottom: 20px;">
-                    60 sekunders cooldown aktiveret for denne enhed
+                    30 sekunders cooldown aktiveret for denne enhed
                   </div>
                   <button class="btn" onclick="bjRestart()" style="padding: 16px 32px;">Tilbage</button>
                 ` : `
@@ -1980,7 +1980,7 @@
                     🤝 Uafgjort (Push)
                   </div>
                   <div style="font-size: 16px; color: var(--muted); margin-bottom: 20px;">
-                    60 sekunders cooldown aktiveret for denne enhed
+                    30 sekunders cooldown aktiveret for denne enhed
                   </div>
                   <button class="btn" onclick="bjRestart()" style="padding: 16px 32px;">Tilbage</button>
                 `}
@@ -2384,13 +2384,14 @@
       let spinning = false;
       let result = null;
       let verified = false;
+      let rotation = 0;
 
       const drinks = [
-        { name: "Olivenolie", weight: 20, emoji: "🫒" },
-        { name: "Snaps", weight: 30, emoji: "🥃" },
-        { name: "Remo", weight: 15, emoji: "🍸" },
-        { name: "Fernet", weight: 30, emoji: "🥃" },
-        { name: "Vand", weight: 5, emoji: "💧" }
+        { name: "Olivenolie", weight: 20, emoji: "🫒", color: "#8b7355" },
+        { name: "Snaps", weight: 30, emoji: "🥃", color: "#d4a574" },
+        { name: "Remo", weight: 15, emoji: "🍸", color: "#67c23a" },
+        { name: "Fernet", weight: 30, emoji: "🥃", color: "#8b4513" },
+        { name: "Vand", weight: 5, emoji: "💧", color: "#409eff" }
       ];
 
       function spin() {
@@ -2399,36 +2400,36 @@
         verified = false;
         result = null;
 
-        let spinCount = 0;
-        const maxSpins = 20;
-        let currentIndex = 0;
+        // Weighted random selection first
+        const totalWeight = drinks.reduce((sum, d) => sum + d.weight, 0);
+        let random = Math.random() * totalWeight;
+        let selectedIndex = 0;
 
-        const interval = setInterval(() => {
-          currentIndex = (currentIndex + 1) % drinks.length;
-          render();
-          spinCount++;
-
-          if (spinCount >= maxSpins) {
-            clearInterval(interval);
-            // Weighted random selection
-            const totalWeight = drinks.reduce((sum, d) => sum + d.weight, 0);
-            let random = Math.random() * totalWeight;
-
-            for (let drink of drinks) {
-              random -= drink.weight;
-              if (random <= 0) {
-                result = drink;
-                break;
-              }
-            }
-
-            spinning = false;
-            render();
+        for (let i = 0; i < drinks.length; i++) {
+          random -= drinks[i].weight;
+          if (random <= 0) {
+            selectedIndex = i;
+            result = drinks[i];
+            break;
           }
-        }, 100);
+        }
+
+        // Calculate rotation to land on selected drink
+        const degreesPerSegment = 360 / drinks.length;
+        const targetRotation = 360 * 5 + (selectedIndex * degreesPerSegment) + (degreesPerSegment / 2); // 5 full spins + target
+        rotation = targetRotation;
+
+        render();
+
+        setTimeout(() => {
+          spinning = false;
+          render();
+        }, 3000);
       }
 
       function render() {
+        const degreesPerSegment = 360 / drinks.length;
+
         container.innerHTML = `
           <div style="text-align: center;">
             <div style="font-size: 24px; font-weight: 600; margin-bottom: 20px;">
@@ -2442,28 +2443,30 @@
             
             ${!result && !spinning ? `
               <div style="margin: 40px 0;">
-                <div style="font-size: 64px; margin-bottom: 20px;">🎰</div>
-                <button class="btn primary" onclick="shotSpin()" style="font-size: 20px; padding: 20px 40px;">
+                <div style="position: relative; width: 300px; height: 300px; margin: 0 auto;">
+                  ${renderWheel(0)}
+                  ${renderPointer()}
+                </div>
+                <button class="btn primary" onclick="shotSpin()" style="font-size: 20px; padding: 20px 40px; margin-top: 30px;">
                   🎲 Spin hjulet!
                 </button>
               </div>
             ` : spinning ? `
               <div style="margin: 40px 0;">
-                <div style="font-size: 72px; animation: spin 0.5s linear infinite;">
-                  🎰
+                <div style="position: relative; width: 300px; height: 300px; margin: 0 auto;">
+                  ${renderWheel(rotation)}
+                  ${renderPointer()}
                 </div>
                 <div style="font-size: 20px; color: var(--accent); margin-top: 20px;">
                   Spinner...
                 </div>
               </div>
-              <style>
-                @keyframes spin {
-                  from { transform: rotate(0deg); }
-                  to { transform: rotate(360deg); }
-                }
-              </style>
             ` : result && !verified ? `
               <div style="margin: 40px 0;">
+                <div style="position: relative; width: 300px; height: 300px; margin: 0 auto 30px;">
+                  ${renderWheel(rotation)}
+                  ${renderPointer()}
+                </div>
                 <div style="font-size: 80px; margin-bottom: 20px;">${result.emoji}</div>
                 <div style="font-size: 32px; font-weight: 700; color: var(--accent); margin-bottom: 30px;">
                   ${result.name}!
@@ -2502,6 +2505,56 @@
         }
       }
 
+      function renderWheel(currentRotation) {
+        const degreesPerSegment = 360 / drinks.length;
+
+        return `
+          <svg width="300" height="300" style="transform: rotate(${currentRotation}deg); transition: transform ${spinning ? '3s' : '0s'} cubic-bezier(0.17, 0.67, 0.12, 0.99);">
+            ${drinks.map((drink, index) => {
+          const startAngle = (index * degreesPerSegment - 90) * Math.PI / 180;
+          const endAngle = ((index + 1) * degreesPerSegment - 90) * Math.PI / 180;
+
+          const x1 = 150 + 140 * Math.cos(startAngle);
+          const y1 = 150 + 140 * Math.sin(startAngle);
+          const x2 = 150 + 140 * Math.cos(endAngle);
+          const y2 = 150 + 140 * Math.sin(endAngle);
+
+          const midAngle = ((index + 0.5) * degreesPerSegment - 90) * Math.PI / 180;
+          const textX = 150 + 90 * Math.cos(midAngle);
+          const textY = 150 + 90 * Math.sin(midAngle);
+
+          return `
+                <path 
+                  d="M 150 150 L ${x1} ${y1} A 140 140 0 0 1 ${x2} ${y2} Z" 
+                  fill="${drink.color}" 
+                  stroke="white" 
+                  stroke-width="2"
+                />
+                <text 
+                  x="${textX}" 
+                  y="${textY}" 
+                  text-anchor="middle" 
+                  dominant-baseline="middle" 
+                  fill="white" 
+                  font-size="28" 
+                  font-weight="bold"
+                  style="pointer-events: none;"
+                >
+                  ${drink.emoji}
+                </text>
+              `;
+        }).join('')}
+            <circle cx="150" cy="150" r="25" fill="white" stroke="#333" stroke-width="3"/>
+          </svg>
+        `;
+      }
+
+      function renderPointer() {
+        return `
+          <div style="position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 30px solid #ff5c7a; z-index: 10; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));"></div>
+        `;
+      }
+
       window.shotSpin = spin;
 
       window.verifyShotRoulette = () => {
@@ -2535,13 +2588,83 @@
       let spinning = false;
       let reels = ['🍒', '🍋', '🍇'];
       let attempts = 0;
+      let inCooldown = false;
+      let timeRemaining = 0;
+      let cooldownInterval = null;
 
       const symbols = ['🍒', '🍋', '🍇', '🍑', '⭐', '🔔', '💰'];
+      const maxAttempts = 3;
+
+      // Get or create unique device ID
+      function getDeviceId() {
+        let deviceId = localStorage.getItem('slot_device_id');
+        if (!deviceId) {
+          deviceId = 'device_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+          localStorage.setItem('slot_device_id', deviceId);
+        }
+        return deviceId;
+      }
+
+      // Check cooldown for this device
+      function checkCooldown() {
+        const deviceId = getDeviceId();
+        const cooldownData = localStorage.getItem(`slot_cooldown_${deviceId}`);
+
+        if (cooldownData) {
+          const data = JSON.parse(cooldownData);
+          const timeSince = Date.now() - data.timestamp;
+          const cooldownTime = 30000; // 30 seconds
+
+          if (timeSince < cooldownTime) {
+            timeRemaining = Math.ceil((cooldownTime - timeSince) / 1000);
+            inCooldown = true;
+            attempts = data.attempts;
+            startCooldownTimer();
+            return true;
+          } else {
+            // Cooldown expired, reset attempts
+            localStorage.removeItem(`slot_cooldown_${deviceId}`);
+            attempts = 0;
+          }
+        }
+        return false;
+      }
+
+      function startCooldownTimer() {
+        if (cooldownInterval) clearInterval(cooldownInterval);
+
+        cooldownInterval = setInterval(() => {
+          timeRemaining--;
+          if (timeRemaining <= 0) {
+            clearInterval(cooldownInterval);
+            inCooldown = false;
+            attempts = 0;
+            const deviceId = getDeviceId();
+            localStorage.removeItem(`slot_cooldown_${deviceId}`);
+          }
+          render();
+        }, 1000);
+      }
+
+      function setCooldown() {
+        const deviceId = getDeviceId();
+        localStorage.setItem(`slot_cooldown_${deviceId}`, JSON.stringify({
+          timestamp: Date.now(),
+          attempts: attempts
+        }));
+      }
 
       function spin() {
-        if (spinning) return;
-        spinning = true;
+        if (spinning || inCooldown) return;
+
         attempts++;
+
+        // Check if reached max attempts
+        if (attempts >= maxAttempts) {
+          spinning = true;
+        } else {
+          spinning = true;
+        }
 
         let spinCount = 0;
         const maxSpins = 20;
@@ -2558,6 +2681,14 @@
           if (spinCount >= maxSpins) {
             clearInterval(interval);
             spinning = false;
+
+            // If reached max attempts and didn't win, start cooldown
+            const isWin = checkWin();
+            if (!isWin && attempts >= maxAttempts) {
+              setCooldown();
+              checkCooldown();
+            }
+
             render();
           }
         }, 100);
@@ -2613,12 +2744,22 @@
                 🎉 JACKPOT!
               </div>
               <div style="font-size: 20px; margin: 10px 0; color: var(--muted);">
-                Forsøg: ${attempts}
+                Forsøg brugt: ${attempts}
               </div>
               <button class="btn primary" onclick="slotFinish()" style="margin-top: 20px;">Fortsæt →</button>
+            ` : inCooldown ? `
+              <div style="font-size: 18px; color: var(--muted); margin: 20px 0;">
+                Du har brugt dine ${maxAttempts} forsøg. Vent lidt!
+              </div>
+              <div style="font-size: 48px; font-weight: 700; color: var(--accent); margin: 30px 0;">
+                ${timeRemaining}s
+              </div>
+              <div style="font-size: 16px; color: var(--muted);">
+                Denne enhed kan spille igen om ${timeRemaining} sekund${timeRemaining !== 1 ? 'er' : ''}
+              </div>
             ` : `
               <div style="font-size: 18px; color: var(--muted); margin: 20px 0;">
-                Forsøg: ${attempts}
+                Forsøg: ${attempts}/${maxAttempts}
               </div>
               <button class="btn primary" onclick="slotSpin()" ${spinning ? 'disabled' : ''} style="font-size: 20px; padding: 20px 40px;">
                 ${spinning ? 'Spinner...' : '🎰 Spin!'}
@@ -2633,9 +2774,12 @@
       window.slotFinish = () => {
         container.innerHTML = '<div style="text-align: center; padding: 40px;"><div style="font-size: 48px; margin-bottom: 16px;">🎰</div><div style="font-size: 24px; font-weight: 600;">Slot machine gennemført!</div></div>';
         document.getElementById("taskStatus").textContent = "✅ Gennemført";
+        if (cooldownInterval) clearInterval(cooldownInterval);
         completeTask(currentTaskIndex);
       };
 
+      // Check cooldown on initial render
+      checkCooldown();
       render();
       document.getElementById("taskStatus").textContent = "Klar til at spille";
     }
