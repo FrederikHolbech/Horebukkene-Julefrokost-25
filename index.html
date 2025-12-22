@@ -567,17 +567,27 @@
     }
 
     function showEditModal(title, currentValue, type) {
+      console.log('showEditModal called:', title, currentValue, type);
+      const editModal = document.getElementById("editModal");
+      const editInput = document.getElementById("editInput");
+
       document.getElementById("editModalTitle").textContent = title;
-      document.getElementById("editInput").value = currentValue;
+      editInput.value = currentValue;
+
       if (type === 'score') {
-        document.getElementById("editInput").type = 'number';
-        document.getElementById("editInput").min = '0';
+        editInput.type = 'number';
+        editInput.min = '0';
       } else {
-        document.getElementById("editInput").type = 'text';
+        editInput.type = 'text';
       }
-      document.getElementById("editModal").classList.add("show");
-      document.getElementById("editInput").focus();
-      document.getElementById("editInput").select();
+
+      editModal.classList.add("show");
+      console.log('Edit modal should be visible now');
+
+      setTimeout(() => {
+        editInput.focus();
+        editInput.select();
+      }, 50);
     }
 
     function closeEditModal() {
@@ -607,21 +617,26 @@
 
     function verifyPin() {
       const input = document.getElementById("pinInput").value;
+      console.log('Verifying PIN, editType:', editType, 'currentTeamIndex:', currentTeamIndex);
+
       if (input === PIN) {
         closeModal();
 
         // Use setTimeout to ensure modal closes before opening edit modal
         setTimeout(() => {
           if (currentAction) {
+            console.log('Executing currentAction');
             currentAction();
             currentAction = null;
           }
           else if (editType === 'name') {
+            console.log('Opening name edit modal for team:', currentTeamIndex);
             showEditModal(`Rediger ${teams[currentTeamIndex].name}`, teams[currentTeamIndex].name, 'name');
           } else if (editType === 'score') {
+            console.log('Opening score edit modal for team:', currentTeamIndex);
             showEditModal(`Rediger point for ${teams[currentTeamIndex].name}`, teams[currentTeamIndex].score, 'score');
           }
-        }, 100);
+        }, 150);
       } else {
         document.getElementById("errorMsg").textContent = "Forkert PIN - prøv igen";
         document.getElementById("pinInput").value = "";
