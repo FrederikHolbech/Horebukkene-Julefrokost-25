@@ -2064,10 +2064,21 @@
       let deck = [];
       let playerHand = [];
       let dealerHand = [];
-      let gameState = 'betting'; // betting, playing, dealer, finished, cooldown
+      let gameState = 'betting'; // betting, playing, dealer, finished
       let result = '';
+      let inCooldown = false;
       let timeRemaining = 0;
       let cooldownInterval = null;
+
+      // Get or create unique device ID
+      function getDeviceId() {
+        let deviceId = localStorage.getItem('blackjack_device_id');
+        if (!deviceId) {
+          deviceId = 'device_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+          localStorage.setItem('blackjack_device_id', deviceId);
+        }
+        return deviceId;
+      }
 
       // Check cooldown for this device
       function checkCooldown() {
@@ -2080,22 +2091,15 @@
 
           if (timeSince < cooldownTime) {
             timeRemaining = Math.ceil((cooldownTime - timeSince) / 1000);
-            gameState = 'cooldown';
+            inCooldown = true;
             startCooldownTimer();
             return true;
+          } else {
+            // Cooldown expired, clear it
+            localStorage.removeItem(`blackjack_cooldown_${deviceId}`);
           }
         }
         return false;
-      }
-
-      // Get or create unique device ID
-      function getDeviceId() {
-        let deviceId = localStorage.getItem('blackjack_device_id');
-        if (!deviceId) {
-          deviceId = 'device_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-          localStorage.setItem('blackjack_device_id', deviceId);
-        }
-        return deviceId;
       }
 
       function startCooldownTimer() {
@@ -2111,7 +2115,9 @@
             clearInterval(cooldownInterval);
             const index = activeTimers.indexOf(cooldownInterval);
             if (index > -1) activeTimers.splice(index, 1);
-            gameState = 'betting';
+            inCooldown = false;
+            const deviceId = getDeviceId();
+            localStorage.removeItem(`blackjack_cooldown_${deviceId}`);
           }
           render();
         }, 1000);
@@ -2167,10 +2173,7 @@
       }
 
       function startGame() {
-        if (checkCooldown()) {
-          render();
-          return;
-        }
+        if (inCooldown) return;
 
         createDeck();
         playerHand = [drawCard(), drawCard()];
@@ -2281,8 +2284,8 @@
       }
 
       function render() {
-        const playerValue = getHandValue(playerHand);
-        const dealerValue = getHandValue(dealerHand);
+        const playerValue = playerHand.length > 0 ? getHandValue(playerHand) : 0;
+        const dealerValue = dealerHand.length > 0 ? getHandValue(dealerHand) : 0;
 
         container.innerHTML = `
           <div style="text-align: center;">
@@ -2290,7 +2293,7 @@
               🃏 Blackjack
             </div>
             
-            ${gameState !== 'betting' ? `
+            ${!inCooldown && gameState !== 'betting' ? `
               <div style="margin-bottom: 40px; padding: 20px; background: var(--card); border-radius: 12px;">
                 <div style="font-size: 18px; font-weight: 600; margin-bottom: 12px; color: var(--muted);">
                   Dealer ${gameState === 'playing' ? '(??)' : '(' + dealerValue + ')'}
@@ -2311,14 +2314,7 @@
               </div>
             ` : ''}
             
-            ${gameState === 'betting' ? `
-              <div style="font-size: 18px; color: var(--muted); margin-bottom: 30px;">
-                Vind en hånd blackjack mod dealeren for at gennemføre opgaven!
-              </div>
-              <button class="btn primary" onclick="bjStart()" style="font-size: 20px; padding: 20px 40px;">
-                🎲 Start spil
-              </button>
-            ` : gameState === 'cooldown' ? `
+            ${inCooldown ? `
               <div style="font-size: 18px; color: var(--muted); margin-bottom: 30px;">
                 Du har lige spillet. Vent lidt før næste forsøg!
               </div>
@@ -2328,6 +2324,13 @@
               <div style="font-size: 16px; color: var(--muted);">
                 Denne enhed kan spille igen om ${timeRemaining} sekund${timeRemaining !== 1 ? 'er' : ''}
               </div>
+            ` : gameState === 'betting' ? `
+              <div style="font-size: 18px; color: var(--muted); margin-bottom: 30px;">
+                Vind en hånd blackjack mod dealeren for at gennemføre opgaven!
+              </div>
+              <button class="btn primary" onclick="bjStart()" style="font-size: 20px; padding: 20px 40px;">
+                🎲 Start spil
+              </button>
             ` : gameState === 'playing' ? `
               <div style="display: flex; gap: 12px; justify-content: center; margin-top: 20px;">
                 <button class="btn" onclick="bjHit()" style="padding: 16px 32px;">🎴 Hit</button>
@@ -2382,7 +2385,6 @@
       window.bjRestart = () => {
         setCooldown();
         checkCooldown();
-        render();
       };
 
       window.bjFinish = () => {
@@ -2390,6 +2392,8 @@
         document.getElementById("taskStatus").textContent = "✅ Gennemført";
         if (cooldownInterval) {
           clearInterval(cooldownInterval);
+          const index = activeTimers.indexOf(cooldownInterval);
+          if (index > -1) activeTimers.splice(index, 1);
         }
         completeTask(currentTaskIndex);
       };
