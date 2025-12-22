@@ -515,7 +515,7 @@
         type: "physiology-quiz"
       },
       {
-        title: "Snyd Værten - 5 Point",
+        title: "Buca eller Vand - 5 Point",
         description: "Drik vand eller sambuca - kan Dunkin gætte det? 🥃",
         type: "trick-host"
       },
@@ -533,6 +533,16 @@
         title: "Strava Løb - 10 Point",
         description: "Løb en kilometer og vis Dunkin bevis fra Strava! 🏃‍♂️",
         type: "strava-run"
+      },
+      {
+        title: "Matematik - 10 Point",
+        description: "Løs 10 regnestykker! 🧠",
+        type: "math-sprint"
+      },
+      {
+        title: "Hukommelses Spil - 10 Point",
+        description: "Husk en sekvens af tal! 🧠🔢",
+        type: "memory-game"
       },
       {
         title: "Blackjack - 10 Point",
@@ -885,6 +895,12 @@
           break;
         case "strava-run":
           renderStravaRunTask(content);
+          break;
+        case "math-sprint":
+          renderMathSprintTask(content);
+          break;
+        case "memory-game":
+          renderMemoryGameTask(content);
           break;
         case "blackjack":
           renderBlackjackTask(content);
@@ -1926,8 +1942,370 @@
       document.getElementById("taskStatus").textContent = "Klar til at spille";
     }
 
-    // 11. ROULETTE TASK
-    function renderRouletteTask(container) {
+    // 10. MATH SPRINT TASK
+    function renderMathSprintTask(container) {
+      let questions = [];
+      let currentQ = 0;
+      let startTime = null;
+      let totalTime = 0;
+
+      function generateQuestion() {
+        const questionTypes = [
+          // 1. Kvadratrod og potens
+          () => {
+            const base = Math.floor(Math.random() * 10) + 2; // 2-11
+            const square = base * base;
+            return { question: `√${square} + ${base}`, answer: base + base };
+          },
+          // 2. Fakultet små tal
+          () => {
+            const n = Math.floor(Math.random() * 3) + 3; // 3, 4, eller 5
+            const factorial = n === 3 ? 6 : n === 4 ? 24 : 120;
+            return { question: `${n}!`, answer: factorial };
+          },
+          // 3. Potenser
+          () => {
+            const base = Math.floor(Math.random() * 5) + 2; // 2-6
+            const exp = Math.floor(Math.random() * 3) + 2; // 2-4
+            const answer = Math.pow(base, exp);
+            return { question: `${base}^${exp}`, answer: answer };
+          },
+          // 4. Modulus/division med rest
+          () => {
+            const divisor = Math.floor(Math.random() * 8) + 3; // 3-10
+            const quotient = Math.floor(Math.random() * 15) + 5;
+            const remainder = Math.floor(Math.random() * divisor);
+            const dividend = quotient * divisor + remainder;
+            return { question: `${dividend} mod ${divisor}`, answer: remainder };
+          },
+          // 5. Sum af talrække
+          () => {
+            const n = Math.floor(Math.random() * 8) + 5; // 5-12
+            const sum = (n * (n + 1)) / 2;
+            return { question: `Σ(1 til ${n})`, answer: sum };
+          },
+          // 6. Procent beregning
+          () => {
+            const percent = [10, 20, 25, 50, 75].at(Math.floor(Math.random() * 5));
+            const total = Math.floor(Math.random() * 10) * 20 + 100; // 100, 120, 140...
+            const answer = (total * percent) / 100;
+            return { question: `${percent}% af ${total}`, answer: answer };
+          },
+          // 7. Binær til decimal
+          () => {
+            const decimal = Math.floor(Math.random() * 16) + 1; // 1-16
+            const binary = decimal.toString(2);
+            return { question: `${binary}₂ til base 10`, answer: decimal };
+          },
+          // 8. Primtal kontrol (er det primtal? 1=ja, 0=nej)
+          () => {
+            const primes = [2, 3, 5, 7, 11, 13, 17, 19, 23];
+            const nonPrimes = [4, 6, 8, 9, 10, 12, 14, 15, 16, 18, 20, 21];
+            const isPrime = Math.random() > 0.5;
+            const num = isPrime ? primes[Math.floor(Math.random() * primes.length)] : nonPrimes[Math.floor(Math.random() * nonPrimes.length)];
+            return { question: `Er ${num} et primtal? (1=ja, 0=nej)`, answer: isPrime ? 1 : 0 };
+          },
+          // 9. GCD (største fælles divisor)
+          () => {
+            const gcds = [[12, 8, 4], [15, 25, 5], [18, 24, 6], [14, 21, 7], [20, 30, 10]];
+            const choice = gcds[Math.floor(Math.random() * gcds.length)];
+            return { question: `GCD(${choice[0]}, ${choice[1]})`, answer: choice[2] };
+          },
+          // 10. Fibonacci tal
+          () => {
+            const fibs = [1, 1, 2, 3, 5, 8, 13, 21, 34, 55];
+            const index = Math.floor(Math.random() * 7) + 3; // F3 til F9
+            return { question: `Fibonacci F${index}`, answer: fibs[index] };
+          }
+        ];
+
+        const randomType = questionTypes[Math.floor(Math.random() * questionTypes.length)];
+        return randomType();
+      }
+
+      function startQuiz() {
+        questions = [];
+        for (let i = 0; i < 10; i++) {
+          questions.push(generateQuestion());
+        }
+        currentQ = 0;
+        startTime = Date.now();
+        render();
+      }
+
+      function checkAnswer() {
+        const input = document.getElementById("mathAnswer")?.value || '';
+        const errorDiv = document.getElementById("mathError");
+
+        if (input.trim() === '') {
+          errorDiv.textContent = "Indtast et svar";
+          return;
+        }
+
+        const userAnswer = parseFloat(input);
+        const correctAnswer = questions[currentQ].answer;
+
+        if (userAnswer === correctAnswer) {
+          currentQ++;
+          if (currentQ >= questions.length) {
+            totalTime = ((Date.now() - startTime) / 1000).toFixed(1);
+          }
+          render();
+        } else {
+          errorDiv.textContent = "Forkert! Prøv igen";
+          document.getElementById("mathAnswer").value = "";
+          setTimeout(() => {
+            errorDiv.textContent = "";
+          }, 2000);
+        }
+      }
+
+      function render() {
+        if (questions.length === 0) {
+          container.innerHTML = `
+            <div style="text-align: center;">
+              <div style="font-size: 24px; font-weight: 600; margin-bottom: 20px;">
+                Matematik Sprint 🧠
+              </div>
+              
+              <div style="font-size: 18px; color: var(--muted); margin-bottom: 30px; line-height: 1.6;">
+                Løs 10 universitets-niveau matematik spørgsmål!<br>
+                Potenser, fakulteter, modulus, primtal, m.m.
+              </div>
+              
+              <div style="font-size: 64px; margin: 40px 0;">
+                🔢
+              </div>
+              
+              <button class="btn primary" onclick="mathStart()" style="font-size: 20px; padding: 20px 40px;">
+                Start quiz! 🚀
+              </button>
+            </div>
+          `;
+        } else if (currentQ < questions.length) {
+          const q = questions[currentQ];
+          container.innerHTML = `
+            <div style="text-align: center;">
+              <div style="font-size: 18px; color: var(--muted); margin-bottom: 20px;">
+                Spørgsmål ${currentQ + 1}/10
+              </div>
+              
+              <div style="font-size: 40px; font-weight: 700; margin: 40px 0; color: var(--accent); line-height: 1.4;">
+                ${q.question}
+              </div>
+              
+              <div style="max-width: 300px; margin: 30px auto;">
+                <input 
+                  type="text" 
+                  id="mathAnswer" 
+                  placeholder="Dit svar" 
+                  style="width: 100%; padding: 16px; font-size: 24px; border: 2px solid var(--border); border-radius: 12px; background: var(--card); color: var(--text); text-align: center;"
+                  onkeypress="if(event.key==='Enter'){event.preventDefault();mathCheck();}"
+                >
+                <div id="mathError" style="color: var(--bad); margin-top: 12px; min-height: 24px;"></div>
+                <button class="btn primary" onclick="mathCheck()" style="margin-top: 20px; width: 100%;">Tjek svar</button>
+              </div>
+            </div>
+          `;
+          setTimeout(() => document.getElementById("mathAnswer")?.focus(), 100);
+        } else {
+          container.innerHTML = `
+            <div style="text-align: center;">
+              <div style="font-size: 32px; color: var(--ok); margin: 30px 0; font-weight: 600;">
+                🎉 Alle rigtige!
+              </div>
+              <div style="font-size: 24px; margin: 20px 0;">
+                Tid: ${totalTime} sekunder
+              </div>
+              <button class="btn primary" onclick="mathFinish()" style="margin-top: 30px;">Fortsæt →</button>
+            </div>
+          `;
+        }
+      }
+
+      window.mathStart = startQuiz;
+      window.mathCheck = checkAnswer;
+
+      window.mathFinish = () => {
+        container.innerHTML = '<div style="text-align: center; padding: 40px;"><div style="font-size: 48px; margin-bottom: 16px;">🧠</div><div style="font-size: 24px; font-weight: 600;">Matematik sprint gennemført!</div></div>';
+        document.getElementById("taskStatus").textContent = "✅ Gennemført";
+        completeTask(currentTaskIndex);
+      };
+
+      render();
+      document.getElementById("taskStatus").textContent = "Klar til matematik";
+    }
+
+    // 11. MEMORY GAME TASK
+    function renderMemoryGameTask(container) {
+      let sequence = [];
+      let userSequence = [];
+      let level = 1;
+      let showingSequence = false;
+      let gameStarted = false;
+
+      function startGame() {
+        sequence = [];
+        userSequence = [];
+        level = 1;
+        gameStarted = true;
+        nextLevel();
+      }
+
+      function nextLevel() {
+        userSequence = [];
+        sequence.push(Math.floor(Math.random() * 9) + 1);
+        showSequence();
+      }
+
+      function showSequence() {
+        showingSequence = true;
+        render();
+
+        let index = 0;
+        const interval = setInterval(() => {
+          if (index < sequence.length) {
+            highlightNumber(sequence[index]);
+            index++;
+          } else {
+            clearInterval(interval);
+            showingSequence = false;
+            render();
+          }
+        }, 800);
+      }
+
+      function highlightNumber(num) {
+        const btn = document.getElementById(`memBtn${num}`);
+        if (btn) {
+          btn.style.background = 'var(--accent)';
+          btn.style.transform = 'scale(1.1)';
+          setTimeout(() => {
+            btn.style.background = '';
+            btn.style.transform = '';
+          }, 600);
+        }
+      }
+
+      function numberClick(num) {
+        if (showingSequence) return;
+
+        userSequence.push(num);
+        highlightNumber(num);
+
+        // Check if correct so far
+        const currentIndex = userSequence.length - 1;
+        if (userSequence[currentIndex] !== sequence[currentIndex]) {
+          // Wrong!
+          setTimeout(() => {
+            alert(`Forkert! Du klarede ${level - 1} niveau${level - 1 !== 1 ? 'er' : ''}. Prøv igen!`);
+            gameStarted = false;
+            render();
+          }, 300);
+          return;
+        }
+
+        // Check if sequence completed
+        if (userSequence.length === sequence.length) {
+          if (level >= 5) {
+            // Won!
+            setTimeout(() => {
+              render();
+            }, 300);
+          } else {
+            // Next level
+            level++;
+            setTimeout(() => {
+              nextLevel();
+            }, 1000);
+          }
+        }
+      }
+
+      function render() {
+        if (!gameStarted) {
+          container.innerHTML = `
+            <div style="text-align: center;">
+              <div style="font-size: 24px; font-weight: 600; margin-bottom: 20px;">
+                Hukommelses Spil 🧠🔢
+              </div>
+              
+              <div style="font-size: 18px; color: var(--muted); margin-bottom: 30px; line-height: 1.6;">
+                Husk sekvensen af tal!<br>
+                Klar ${level > 1 ? level - 1 : 5} niveauer for at vinde
+              </div>
+              
+              <div style="font-size: 64px; margin: 40px 0;">
+                🧠
+              </div>
+              
+              <button class="btn primary" onclick="memStart()" style="font-size: 20px; padding: 20px 40px;">
+                Start spil! 🚀
+              </button>
+            </div>
+          `;
+        } else if (level > 5) {
+          container.innerHTML = `
+            <div style="text-align: center;">
+              <div style="font-size: 32px; color: var(--ok); margin: 30px 0; font-weight: 600;">
+                🎉 Du klarede det!
+              </div>
+              <div style="font-size: 20px; margin: 20px 0; color: var(--muted);">
+                Alle 5 niveauer gennemført!
+              </div>
+              <button class="btn primary" onclick="memFinish()" style="margin-top: 30px;">Fortsæt →</button>
+            </div>
+          `;
+        } else {
+          container.innerHTML = `
+            <div style="text-align: center;">
+              <div style="font-size: 20px; color: var(--muted); margin-bottom: 20px;">
+                Niveau ${level} - Husk ${sequence.length} tal
+              </div>
+              
+              ${showingSequence ? `
+                <div style="font-size: 18px; color: var(--accent); margin: 20px 0;">
+                  Se og husk sekvensen...
+                </div>
+              ` : `
+                <div style="font-size: 18px; color: var(--ok); margin: 20px 0;">
+                  Tryk tallene i rækkefølge!
+                </div>
+              `}
+              
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 300px; margin: 40px auto;">
+                ${[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => `
+                  <button 
+                    id="memBtn${num}"
+                    class="btn" 
+                    onclick="memClick(${num})" 
+                    ${showingSequence ? 'disabled' : ''}
+                    style="padding: 30px; font-size: 24px; font-weight: 700; transition: all 0.3s;"
+                  >
+                    ${num}
+                  </button>
+                `).join('')}
+              </div>
+            </div>
+          `;
+        }
+      }
+
+      window.memStart = startGame;
+      window.memClick = numberClick;
+
+      window.memFinish = () => {
+        container.innerHTML = '<div style="text-align: center; padding: 40px;"><div style="font-size: 48px; margin-bottom: 16px;">🧠</div><div style="font-size: 24px; font-weight: 600;">Hukommelses spil gennemført!</div></div>';
+        document.getElementById("taskStatus").textContent = "✅ Gennemført";
+        completeTask(currentTaskIndex);
+      };
+
+      render();
+      document.getElementById("taskStatus").textContent = "Klar til at spille";
+    }
+
+    // 12. BLACKJACK TASK
+    function renderBlackjackTask(container) {
       let spinning = false;
       let result = 0;
 
