@@ -1023,7 +1023,9 @@
 
       window.emojiCheckGuess = () => {
         const guess = document.getElementById("songGuess")?.value.toLowerCase().trim() || '';
-        const answer = songs[currentS].answer.toLowerCase();
+        const answer = songs[currentS].answer.toLowerCase().trim();
+
+        console.log('Guess:', guess, 'Answer:', answer, 'Match:', guess === answer);
 
         // Check if guess matches the answer exactly
         if (guess === answer) {
