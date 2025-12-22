@@ -466,6 +466,7 @@
     // Task system
     let currentTaskIndex = 0;
     let completedTasks = [];
+    let activeTimers = [];
     const tasks = [
       {
         title: "Find Sangen - 10 Point",
@@ -817,6 +818,10 @@
         alert("Denne opgave er allerede gennemført!");
         return;
       }
+      // Clear any active timers from previous task
+      activeTimers.forEach(timer => clearInterval(timer));
+      activeTimers = [];
+
       currentTaskIndex = index;
       document.getElementById("tasksOverview").classList.add("hidden");
       document.getElementById("taskDetail").classList.add("active");
@@ -824,6 +829,10 @@
     }
 
     function showTasksOverview() {
+      // Clear any active timers
+      activeTimers.forEach(timer => clearInterval(timer));
+      activeTimers = [];
+
       document.getElementById("taskDetail").classList.remove("active");
       document.getElementById("tasksOverview").classList.remove("hidden");
     }
@@ -1721,16 +1730,23 @@
       }
 
       function startCooldownTimer() {
-        if (cooldownInterval) clearInterval(cooldownInterval);
+        if (cooldownInterval) {
+          clearInterval(cooldownInterval);
+          const index = activeTimers.indexOf(cooldownInterval);
+          if (index > -1) activeTimers.splice(index, 1);
+        }
 
         cooldownInterval = setInterval(() => {
           timeRemaining--;
           if (timeRemaining <= 0) {
             clearInterval(cooldownInterval);
+            const index = activeTimers.indexOf(cooldownInterval);
+            if (index > -1) activeTimers.splice(index, 1);
             gameState = 'betting';
           }
           render();
         }, 1000);
+        activeTimers.push(cooldownInterval);
       }
 
       function setCooldown() {
@@ -2385,6 +2401,7 @@
       let result = null;
       let verified = false;
       let rotation = 0;
+      let currentRotation = 0;
 
       const drinks = [
         { name: "Olivenolie", weight: 20, emoji: "🫒", color: "#8b7355" },
@@ -2416,10 +2433,20 @@
 
         // Calculate rotation to land on selected drink
         const degreesPerSegment = 360 / drinks.length;
-        const targetRotation = 360 * 5 + (selectedIndex * degreesPerSegment) + (degreesPerSegment / 2); // 5 full spins + target
-        rotation = targetRotation;
+        // Add current rotation plus 5 full spins plus target segment
+        // We need to account for the pointer being at top, so we adjust the target
+        const targetAngle = (drinks.length - selectedIndex - 1) * degreesPerSegment + (degreesPerSegment / 2);
+        const newRotation = currentRotation + 360 * 5 + targetAngle;
+        rotation = newRotation;
 
+        // Force a render with current rotation first to ensure smooth transition
         render();
+
+        // Use requestAnimationFrame to ensure the transition happens
+        requestAnimationFrame(() => {
+          currentRotation = newRotation;
+          render();
+        });
 
         setTimeout(() => {
           spinning = false;
@@ -2444,7 +2471,7 @@
             ${!result && !spinning ? `
               <div style="margin: 40px 0;">
                 <div style="position: relative; width: 300px; height: 300px; margin: 0 auto;">
-                  ${renderWheel(0)}
+                  ${renderWheel(currentRotation, false)}
                   ${renderPointer()}
                 </div>
                 <button class="btn primary" onclick="shotSpin()" style="font-size: 20px; padding: 20px 40px; margin-top: 30px;">
@@ -2454,7 +2481,7 @@
             ` : spinning ? `
               <div style="margin: 40px 0;">
                 <div style="position: relative; width: 300px; height: 300px; margin: 0 auto;">
-                  ${renderWheel(rotation)}
+                  ${renderWheel(currentRotation, true)}
                   ${renderPointer()}
                 </div>
                 <div style="font-size: 20px; color: var(--accent); margin-top: 20px;">
@@ -2464,7 +2491,7 @@
             ` : result && !verified ? `
               <div style="margin: 40px 0;">
                 <div style="position: relative; width: 300px; height: 300px; margin: 0 auto 30px;">
-                  ${renderWheel(rotation)}
+                  ${renderWheel(currentRotation, false)}
                   ${renderPointer()}
                 </div>
                 <div style="font-size: 80px; margin-bottom: 20px;">${result.emoji}</div>
@@ -2505,11 +2532,11 @@
         }
       }
 
-      function renderWheel(currentRotation) {
+      function renderWheel(rotationValue, isSpinning) {
         const degreesPerSegment = 360 / drinks.length;
 
         return `
-          <svg width="300" height="300" style="transform: rotate(${currentRotation}deg); transition: transform ${spinning ? '3s' : '0s'} cubic-bezier(0.17, 0.67, 0.12, 0.99);">
+          <svg width="300" height="300" style="transform: rotate(${rotationValue}deg); transition: transform ${isSpinning ? '3s' : '0s'} cubic-bezier(0.17, 0.67, 0.12, 0.99);">
             ${drinks.map((drink, index) => {
           const startAngle = (index * degreesPerSegment - 90) * Math.PI / 180;
           const endAngle = ((index + 1) * degreesPerSegment - 90) * Math.PI / 180;
@@ -2536,11 +2563,11 @@
                   text-anchor="middle" 
                   dominant-baseline="middle" 
                   fill="white" 
-                  font-size="28" 
+                  font-size="18" 
                   font-weight="bold"
                   style="pointer-events: none;"
                 >
-                  ${drink.emoji}
+                  ${drink.name}
                 </text>
               `;
         }).join('')}
@@ -2631,12 +2658,18 @@
       }
 
       function startCooldownTimer() {
-        if (cooldownInterval) clearInterval(cooldownInterval);
+        if (cooldownInterval) {
+          clearInterval(cooldownInterval);
+          const index = activeTimers.indexOf(cooldownInterval);
+          if (index > -1) activeTimers.splice(index, 1);
+        }
 
         cooldownInterval = setInterval(() => {
           timeRemaining--;
           if (timeRemaining <= 0) {
             clearInterval(cooldownInterval);
+            const index = activeTimers.indexOf(cooldownInterval);
+            if (index > -1) activeTimers.splice(index, 1);
             inCooldown = false;
             attempts = 0;
             const deviceId = getDeviceId();
@@ -2644,6 +2677,7 @@
           }
           render();
         }, 1000);
+        activeTimers.push(cooldownInterval);
       }
 
       function setCooldown() {
@@ -2774,7 +2808,11 @@
       window.slotFinish = () => {
         container.innerHTML = '<div style="text-align: center; padding: 40px;"><div style="font-size: 48px; margin-bottom: 16px;">🎰</div><div style="font-size: 24px; font-weight: 600;">Slot machine gennemført!</div></div>';
         document.getElementById("taskStatus").textContent = "✅ Gennemført";
-        if (cooldownInterval) clearInterval(cooldownInterval);
+        if (cooldownInterval) {
+          clearInterval(cooldownInterval);
+          const index = activeTimers.indexOf(cooldownInterval);
+          if (index > -1) activeTimers.splice(index, 1);
+        }
         completeTask(currentTaskIndex);
       };
 
