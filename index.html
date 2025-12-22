@@ -543,7 +543,7 @@
       },
       {
         title: "Klik Udfordring",
-        description: "Tryk på knappen 65+ gange på 10 sekunder! 🖱️",
+        description: "Tryk på knappen 75+ gange på 10 sekunder! 🖱️",
         type: "click-challenge"
       },
       {
@@ -1009,7 +1009,7 @@
         container.innerHTML = `
           <div style="text-align: center;">
             <div style="font-size: 18px; color: var(--muted); margin-bottom: 20px;">
-              Tryk på knappen mere end 65 gange på 10 sekunder!
+              Tryk på knappen mere end 75 gange på 10 sekunder!
             </div>
             
             <div style="font-size: 80px; font-weight: 700; color: var(--accent); margin: 30px 0;">
@@ -1030,14 +1030,14 @@
               </button>
             ` : `
               <div style="margin-top: 30px;">
-                ${clicks >= 65 ? `
+                ${clicks >= 75 ? `
                   <div style="font-size: 28px; color: var(--ok); margin-bottom: 20px;">
                     ✅ Du klarede det! ${clicks} klik!
                   </div>
                   <button class="btn primary" onclick="clickFinish()">Fortsæt →</button>
                 ` : `
                   <div style="font-size: 28px; color: var(--bad); margin-bottom: 20px;">
-                    ❌ Ikke nok klik! Kun ${clicks}/65
+                    ❌ Ikke nok klik! Kun ${clicks}/75
                   </div>
                   <button class="btn" onclick="clickRetry()">Prøv igen</button>
                 `}
@@ -1319,6 +1319,35 @@
       if (e.key === "Enter") {
         e.preventDefault();
         saveEdit();
+      }
+    });
+
+    // Listen for localStorage changes from other tabs/devices
+    window.addEventListener("storage", (e) => {
+      if (e.key === "completedTasks") {
+        // Reload completed tasks
+        const savedTasks = localStorage.getItem("completedTasks");
+        if (savedTasks) {
+          try {
+            completedTasks = JSON.parse(savedTasks);
+
+            // Check if currently viewing a task that was just completed
+            const taskDetail = document.getElementById("taskDetail");
+            if (taskDetail.classList.contains("active") && completedTasks.includes(currentTaskIndex)) {
+              // Task was completed by someone else - go back to overview
+              showTasksOverview();
+            }
+
+            // Update the grid
+            renderTaskGrid();
+          } catch (e) {
+            console.error("Kunne ikke indlæse opgaver");
+          }
+        }
+      } else if (e.key === "scoreboardData") {
+        // Reload scoreboard
+        loadData();
+        renderScoreboard();
       }
     });
 
