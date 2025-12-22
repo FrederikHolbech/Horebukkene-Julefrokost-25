@@ -548,8 +548,13 @@
       },
       {
         title: "Beer Pong Challenge",
-        description: "Kast bolden i koppern 4 gange i streg! 🍺",
+        description: "Kast bolden i kopperne 4 gange i streg! 🍺",
         type: "beer-pong"
+      },
+      {
+        title: "Fysiologi Quiz",
+        description: "Svar på 5 svære spørgsmål om fysiologi! 🧠",
+        type: "physiology-quiz"
       }
     ];
 
@@ -884,6 +889,9 @@
         case "beer-pong":
           renderBeerPongTask(content);
           break;
+        case "physiology-quiz":
+          renderPhysiologyQuizTask(content);
+          break;
         default:
           content.innerHTML = `
             <div style="text-align: center; padding: 40px; color: var(--muted);">
@@ -1160,7 +1168,122 @@
       document.getElementById("taskStatus").textContent = "Klar til at starte";
     }
 
-    // 4. ROULETTE TASK
+    // 4. PHYSIOLOGY QUIZ TASK
+    function renderPhysiologyQuizTask(container) {
+      const questions = [
+        {
+          q: "Hvad er det normale hvile-hjerterate for en voksen?",
+          answer: "60-100",
+          hint: "Angiv som interval (fx 60-100)"
+        },
+        {
+          q: "Hvor mange liter blod pumper hjertet cirka per minut i hvile?",
+          answer: "5",
+          hint: "Angiv som tal i liter"
+        },
+        {
+          q: "Hvad hedder det protein i røde blodlegemer der transporterer ilt?",
+          answer: "hæmoglobin",
+          hint: "Et ord"
+        },
+        {
+          q: "Hvor mange kranienervepar har mennesket?",
+          answer: "12",
+          hint: "Angiv som tal"
+        },
+        {
+          q: "Hvad er det normale pH-niveau i blodet?",
+          answer: "7.4",
+          hint: "Angiv som decimal (fx 7.4)"
+        }
+      ];
+
+      let currentQ = 0;
+      let answered = false;
+
+      function render() {
+        container.innerHTML = `
+          <div style="text-align: center;">
+            <div style="font-size: 18px; color: var(--muted); margin-bottom: 20px;">
+              Spørgsmål ${currentQ + 1}/${questions.length}
+            </div>
+            <div style="font-size: 22px; font-weight: 600; margin-bottom: 30px; line-height: 1.4;">
+              ${questions[currentQ].q}
+            </div>
+            
+            ${!answered ? `
+              <div style="max-width: 400px; margin: 20px auto;">
+                <div style="font-size: 14px; color: var(--muted); margin-bottom: 8px;">
+                  ${questions[currentQ].hint}
+                </div>
+                <input 
+                  type="text" 
+                  id="physioAnswer" 
+                  placeholder="Dit svar..." 
+                  style="width: 100%; padding: 16px; font-size: 18px; border: 2px solid var(--border); border-radius: 12px; background: var(--card); color: var(--text); text-align: center;"
+                  onkeypress="if(event.key==='Enter'){event.preventDefault();checkPhysioAnswer();}"
+                >
+              </div>
+              <button class="btn primary" onclick="checkPhysioAnswer()" style="margin-top: 20px;">Tjek svar</button>
+            ` : `
+              <div style="font-size: 20px; margin: 20px 0; min-height: 60px; color: var(--ok);">
+                ✓ Korrekt! Svaret er: ${questions[currentQ].answer}
+              </div>
+              <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 30px;">
+                ${currentQ < questions.length - 1 ? '<button class="btn primary" onclick="physioNext()">Næste →</button>' : '<button class="btn primary" onclick="physioFinish()">Færdig! ✓</button>'}
+              </div>
+            `}
+          </div>
+        `;
+        if (!answered) {
+          setTimeout(() => document.getElementById("physioAnswer")?.focus(), 100);
+        }
+      }
+
+      window.checkPhysioAnswer = () => {
+        const guess = document.getElementById("physioAnswer")?.value.toLowerCase().trim() || '';
+        const answer = questions[currentQ].answer.toLowerCase().trim();
+
+        console.log('Guess:', guess, 'Answer:', answer, 'Match:', guess === answer);
+
+        // Check if guess matches the answer exactly
+        if (guess === answer) {
+          answered = true;
+          render();
+        } else {
+          // Wrong answer - shake the input
+          const input = document.getElementById("physioAnswer");
+          if (input) {
+            input.style.borderColor = 'var(--bad)';
+            input.value = '';
+            input.placeholder = 'Forkert - prøv igen!';
+            setTimeout(() => {
+              input.style.borderColor = '';
+              input.placeholder = 'Dit svar...';
+            }, 1500);
+          }
+        }
+      };
+
+      window.physioNext = () => {
+        if (currentQ < questions.length - 1) {
+          currentQ++;
+          answered = false;
+          render();
+        }
+      };
+
+      window.physioFinish = () => {
+        container.innerHTML = '<div style="text-align: center; padding: 40px;"><div style="font-size: 32px; margin-bottom: 16px;">🧠</div><div style="font-size: 24px; font-weight: 600;">Fysiologi quiz gennemført!</div></div>';
+        document.getElementById("taskStatus").textContent = "✅ Gennemført";
+        completeTask(currentTaskIndex);
+      };
+
+      render();
+      document.getElementById("taskStatus").textContent = "I gang";
+    }
+
+    // 5. ROULETTE TASK
     function renderRouletteTask(container) {
       let spinning = false;
       let result = 0;
