@@ -610,15 +610,18 @@
       if (input === PIN) {
         closeModal();
 
-        if (currentAction) {
-          currentAction();
-          currentAction = null;
-        }
-        else if (editType === 'name') {
-          showEditModal(`Rediger ${teams[currentTeamIndex].name}`, teams[currentTeamIndex].name, 'name');
-        } else if (editType === 'score') {
-          showEditModal(`Rediger point for ${teams[currentTeamIndex].name}`, teams[currentTeamIndex].score, 'score');
-        }
+        // Use setTimeout to ensure modal closes before opening edit modal
+        setTimeout(() => {
+          if (currentAction) {
+            currentAction();
+            currentAction = null;
+          }
+          else if (editType === 'name') {
+            showEditModal(`Rediger ${teams[currentTeamIndex].name}`, teams[currentTeamIndex].name, 'name');
+          } else if (editType === 'score') {
+            showEditModal(`Rediger point for ${teams[currentTeamIndex].name}`, teams[currentTeamIndex].score, 'score');
+          }
+        }, 100);
       } else {
         document.getElementById("errorMsg").textContent = "Forkert PIN - prøv igen";
         document.getElementById("pinInput").value = "";
