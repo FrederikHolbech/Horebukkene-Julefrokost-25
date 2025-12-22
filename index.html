@@ -282,48 +282,6 @@
       margin: 24px 0;
     }
 
-    /* Alphabet Task */
-    .alphabet-input {
-      width: 100%;
-      border: 2px solid var(--border);
-      background: var(--card);
-      color: var(--text);
-      padding: 16px;
-      border-radius: 14px;
-      font-size: 24px;
-      text-align: center;
-      letter-spacing: 2px;
-      outline: none;
-      backdrop-filter: blur(10px);
-      font-family: monospace;
-      margin-bottom: 16px;
-    }
-
-    .alphabet-input:focus {
-      border-color: var(--accent);
-    }
-
-    .alphabet-input.success {
-      border-color: var(--ok);
-    }
-
-    .alphabet-input.error {
-      border-color: var(--bad);
-    }
-
-    .timer {
-      font-size: 48px;
-      font-weight: 700;
-      text-align: center;
-      margin: 20px 0;
-      color: var(--accent);
-    }
-
-    .timer.warning {
-      color: var(--bad);
-      animation: pulse 0.5s infinite;
-    }
-
     @keyframes pulse {
 
       0%,
@@ -565,14 +523,13 @@
         title: "Sugerørs Challenge - 5 Point",
         description: "Drik en øl gennem et sugerør! 🍺🥤",
         type: "straw-challenge"
+      },
+      {
+        title: "Yatzy Challenge - 15 Point",
+        description: "Slå yatzy med 6 terninger! 🎲",
+        type: "yatzy-challenge"
       }
     ];
-
-    // Alphabet task state
-    let alphabetTimer = null;
-    let alphabetStartTime = null;
-    let alphabetElapsed = 0;
-    let alphabetCompleted = false;
 
     // ===== SCOREBOARD FUNCTIONS =====
 
@@ -907,6 +864,9 @@
           break;
         case "straw-challenge":
           renderStrawChallengeTask(content);
+          break;
+        case "yatzy-challenge":
+          renderYatzyChallengeTask(content);
           break;
         default:
           content.innerHTML = `
@@ -1452,7 +1412,98 @@
       document.getElementById("taskStatus").textContent = "Klar til at drikke";
     }
 
-    // 7. ROULETTE TASK
+    // 7. YATZY CHALLENGE TASK
+    function renderYatzyChallengeTask(container) {
+      let dice = [1, 1, 1, 1, 1, 1];
+      let rolling = false;
+      let attempts = 0;
+      let maxAttempts = 20;
+
+      function rollDice() {
+        if (rolling) return;
+        rolling = true;
+        attempts++;
+
+        let rollCount = 0;
+        const rollInterval = setInterval(() => {
+          dice = dice.map(() => Math.floor(Math.random() * 6) + 1);
+          render();
+          rollCount++;
+
+          if (rollCount >= 10) {
+            clearInterval(rollInterval);
+            rolling = false;
+            checkYatzy();
+            render();
+          }
+        }, 100);
+      }
+
+      function checkYatzy() {
+        const allSame = dice.every(d => d === dice[0]);
+        return allSame;
+      }
+
+      function render() {
+        const isYatzy = checkYatzy();
+        const diceEmojis = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+
+        container.innerHTML = `
+          <div style="text-align: center;">
+            <div style="font-size: 24px; font-weight: 600; margin-bottom: 20px;">
+              Slå Yatzy med 6 terninger! 🎲
+            </div>
+            
+            <div style="font-size: 18px; color: var(--muted); margin-bottom: 30px;">
+              Alle 6 terninger skal vise samme værdi!
+            </div>
+            
+            <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin: 40px 0;">
+              ${dice.map(d => `<div style="font-size: 64px;">${diceEmojis[d - 1]}</div>`).join('')}
+            </div>
+            
+            ${isYatzy && !rolling ? `
+              <div style="font-size: 28px; color: var(--ok); margin: 30px 0; font-weight: 600;">
+                🎉 YATZY! Du klarede det på ${attempts} forsøg!
+              </div>
+              <button class="btn primary" onclick="yatzyFinish()">Fortsæt →</button>
+            ` : attempts >= maxAttempts && !rolling ? `
+              <div style="font-size: 24px; color: var(--bad); margin: 30px 0;">
+                ❌ ${maxAttempts} forsøg brugt - prøv igen!
+              </div>
+              <button class="btn" onclick="yatzyReset()">Start forfra</button>
+            ` : `
+              <div style="font-size: 18px; color: var(--muted); margin: 20px 0;">
+                Forsøg: ${attempts}/${maxAttempts}
+              </div>
+              <button class="btn primary" onclick="rollYatzy()" ${rolling ? 'disabled' : ''} style="font-size: 20px; padding: 20px 40px;">
+                ${rolling ? 'Ruller...' : '🎲 Slå terningerne!'}
+              </button>
+            `}
+          </div>
+        `;
+      }
+
+      window.rollYatzy = rollDice;
+
+      window.yatzyReset = () => {
+        dice = [1, 1, 1, 1, 1, 1];
+        rolling = false;
+        attempts = 0;
+        render();
+      };
+
+      window.yatzyFinish = () => {
+        container.innerHTML = '<div style="text-align: center; padding: 40px;"><div style="font-size: 32px; margin-bottom: 16px;">🎲</div><div style="font-size: 24px; font-weight: 600;">Yatzy challenge gennemført!</div></div>';
+        document.getElementById("taskStatus").textContent = "✅ Gennemført";
+        completeTask(currentTaskIndex);
+      };
+
+      render();
+      document.getElementById("taskStatus").textContent = "Klar til at rulle";
+    }
+
+    // 8. ROULETTE TASK
     function renderRouletteTask(container) {
       let spinning = false;
       let result = 0;
