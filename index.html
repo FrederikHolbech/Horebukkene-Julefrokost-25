@@ -516,7 +516,7 @@
       },
       {
         title: "Snyd Værten - 5 Point",
-        description: "Drik vand eller sambuca - kan værten gætte det? 🥃",
+        description: "Drik vand eller sambuca - kan Dunkin gætte det? 🥃",
         type: "trick-host"
       },
       {
@@ -1414,7 +1414,7 @@
 
     // 7. YATZY CHALLENGE TASK
     function renderYatzyChallengeTask(container) {
-      let dice = [1, 1, 1, 1, 1, 1];
+      let dice = [null, null, null, null, null, null];
       let rolling = false;
       let attempts = 0;
       let maxAttempts = 20;
@@ -1440,6 +1440,7 @@
       }
 
       function checkYatzy() {
+        if (dice.some(d => d === null)) return false;
         const allSame = dice.every(d => d === dice[0]);
         return allSame;
       }
@@ -1459,7 +1460,7 @@
             </div>
             
             <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin: 40px 0;">
-              ${dice.map(d => `<div style="font-size: 64px;">${diceEmojis[d - 1]}</div>`).join('')}
+              ${dice.map(d => `<div style="font-size: 64px;">${d === null ? '❓' : diceEmojis[d - 1]}</div>`).join('')}
             </div>
             
             ${isYatzy && !rolling ? `
@@ -1486,14 +1487,13 @@
 
       window.rollYatzy = rollDice;
 
+
       window.yatzyReset = () => {
-        dice = [1, 1, 1, 1, 1, 1];
+        dice = [null, null, null, null, null, null];
         rolling = false;
         attempts = 0;
         render();
-      };
-
-      window.yatzyFinish = () => {
+      }; window.yatzyFinish = () => {
         container.innerHTML = '<div style="text-align: center; padding: 40px;"><div style="font-size: 32px; margin-bottom: 16px;">🎲</div><div style="font-size: 24px; font-weight: 600;">Yatzy challenge gennemført!</div></div>';
         document.getElementById("taskStatus").textContent = "✅ Gennemført";
         completeTask(currentTaskIndex);
