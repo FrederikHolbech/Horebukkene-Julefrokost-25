@@ -619,9 +619,18 @@
 
     function verifyPin() {
       const input = document.getElementById("pinInput").value;
+
+      // Check if already processing
+      if (verifyPin.isProcessing) {
+        console.log('Already processing, ignoring duplicate call');
+        return;
+      }
+
       console.log('Verifying PIN, editType:', editType, 'currentTeamIndex:', currentTeamIndex);
 
       if (input === PIN) {
+        verifyPin.isProcessing = true;
+
         // Save editType and currentTeamIndex before closing modal
         const savedEditType = editType;
         const savedTeamIndex = currentTeamIndex;
@@ -647,6 +656,8 @@
           } else {
             console.log('No matching condition - savedEditType:', savedEditType, 'savedAction:', savedAction);
           }
+
+          verifyPin.isProcessing = false;
         }, 150);
       } else {
         document.getElementById("errorMsg").textContent = "Forkert PIN - prøv igen";
@@ -813,11 +824,17 @@
     // ===== EVENT LISTENERS =====
 
     document.getElementById("pinInput").addEventListener("keydown", (e) => {
-      if (e.key === "Enter") verifyPin();
+      if (e.key === "Enter") {
+        e.preventDefault();
+        verifyPin();
+      }
     });
 
     document.getElementById("editInput").addEventListener("keydown", (e) => {
-      if (e.key === "Enter") saveEdit();
+      if (e.key === "Enter") {
+        e.preventDefault();
+        saveEdit();
+      }
     });
 
     // ===== INITIALIZE =====
