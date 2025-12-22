@@ -155,6 +155,78 @@
       gap: 12px;
     }
 
+    /* Task Grid */
+    .task-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .task-card {
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255, 255, 255, .08), rgba(255, 255, 255, .03));
+      border-radius: 14px;
+      padding: 24px;
+      cursor: pointer;
+      transition: all .2s;
+      backdrop-filter: blur(12px);
+    }
+
+    .task-card:hover {
+      background: linear-gradient(180deg, rgba(124, 92, 255, .15), rgba(124, 92, 255, .08));
+      border-color: rgba(124, 92, 255, .4);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+
+    .task-card-number {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .task-card-title {
+      font-size: 22px;
+      font-weight: 600;
+      margin: 0 0 12px 0;
+    }
+
+    .task-card-description {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* Task Detail View */
+    .task-detail {
+      display: none;
+    }
+
+    .task-detail.active {
+      display: block;
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid var(--border);
+      background: rgba(0, 0, 0, .12);
+      color: var(--text);
+      padding: 10px 16px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 15px;
+      transition: all .2s;
+      margin-bottom: 24px;
+    }
+
+    .back-btn:hover {
+      background: rgba(124, 92, 255, .2);
+      border-color: rgba(124, 92, 255, .4);
+    }
+
     /* Task Section */
     .task-section {
       border: 1px solid var(--border);
@@ -163,6 +235,14 @@
       box-shadow: var(--shadow);
       padding: 32px;
       backdrop-filter: blur(12px);
+    }
+
+    .tasks-overview {
+      display: block;
+    }
+
+    .tasks-overview.hidden {
+      display: none;
     }
 
     .task-header {
@@ -385,23 +465,30 @@
 
     <!-- Task Area -->
     <div class="task-section">
-      <div class="task-header">
-        <div class="task-meta">
-          <span class="pill" id="taskCounter">Opgave 1/5</span>
-          <span class="pill" id="taskStatus">Ikke startet</span>
+      <!-- Overview of all tasks -->
+      <div id="tasksOverview" class="tasks-overview">
+        <h2 style="font-size: 32px; font-weight: 600; margin: 0 0 24px 0;">Opgaver</h2>
+        <div class="task-grid" id="taskGrid"></div>
+      </div>
+
+      <!-- Individual task detail view -->
+      <div id="taskDetail" class="task-detail">
+        <button class="back-btn" onclick="showTasksOverview()">← Tilbage til opgaver</button>
+
+        <div class="task-header">
+          <div class="task-meta">
+            <span class="pill" id="taskCounter">Opgave 1/5</span>
+            <span class="pill" id="taskStatus">Ikke startet</span>
+          </div>
+          <h2 class="task-title" id="taskTitle">Alfabetet Challenge</h2>
+          <p class="task-description" id="taskDescription">Skriv alfabetet a-z så hurtigt som muligt. Du skal gøre det
+            på
+            under 10 sekunder!</p>
         </div>
-        <h2 class="task-title" id="taskTitle">Alfabetet Challenge</h2>
-        <p class="task-description" id="taskDescription">Skriv alfabetet a-z så hurtigt som muligt. Du skal gøre det på
-          under 10 sekunder!</p>
-      </div>
 
-      <div class="task-content" id="taskContent">
-        <!-- Task content will be inserted here -->
-      </div>
-
-      <div class="task-nav">
-        <button class="btn" id="prevTaskBtn" onclick="previousTask()" disabled>← Forrige</button>
-        <button class="btn primary" id="nextTaskBtn" onclick="nextTask()" disabled>Næste →</button>
+        <div class="task-content" id="taskContent">
+          <!-- Task content will be inserted here -->
+        </div>
       </div>
     </div>
   </div>
@@ -448,30 +535,29 @@
     let currentTaskIndex = 0;
     const tasks = [
       {
-        title: "Alfabetet Challenge",
-        description: "Skriv alfabetet a-z så hurtigt som muligt. Du skal gøre det på under 10 sekunder!",
-        type: "alphabet",
-        timeLimit: 10
+        title: "Shots Trivia",
+        description: "Hvem kender gruppen bedst? Svar på spørgsmål om jeres venner!",
+        type: "trivia"
       },
       {
-        title: "Opgave 2",
-        description: "Kommende opgave...",
-        type: "placeholder"
+        title: "Find Sangen",
+        description: "Gæt sangen ud fra emoji! 🎵",
+        type: "emoji-songs"
       },
       {
-        title: "Opgave 3",
-        description: "Kommende opgave...",
-        type: "placeholder"
+        title: "Shot Roulette",
+        description: "Tal roulette - held og lykke! 🎲",
+        type: "roulette"
       },
       {
-        title: "Opgave 4",
-        description: "Kommende opgave...",
-        type: "placeholder"
+        title: "Hvem Ville?",
+        description: "Hvem i gruppen ville mest sandsynligt...?",
+        type: "most-likely"
       },
       {
-        title: "Opgave 5",
-        description: "Kommende opgave...",
-        type: "placeholder"
+        title: "Druk eller Sandhed",
+        description: "Besvar spørgsmål eller tag en tår! 🍺",
+        type: "truth-or-drink"
       }
     ];
 
@@ -707,6 +793,37 @@
       }
     }    // ===== TASK FUNCTIONS =====
 
+    function renderTaskGrid() {
+      const grid = document.getElementById("taskGrid");
+      grid.innerHTML = "";
+
+      tasks.forEach((task, idx) => {
+        const card = document.createElement("div");
+        card.className = "task-card";
+        card.onclick = () => openTask(idx);
+
+        card.innerHTML = `
+          <div class="task-card-number">Opgave ${idx + 1}</div>
+          <div class="task-card-title">${task.title}</div>
+          <div class="task-card-description">${task.description}</div>
+        `;
+
+        grid.appendChild(card);
+      });
+    }
+
+    function openTask(index) {
+      currentTaskIndex = index;
+      document.getElementById("tasksOverview").classList.add("hidden");
+      document.getElementById("taskDetail").classList.add("active");
+      renderTask();
+    }
+
+    function showTasksOverview() {
+      document.getElementById("taskDetail").classList.remove("active");
+      document.getElementById("tasksOverview").classList.remove("hidden");
+    }
+
     function renderTask() {
       const task = tasks[currentTaskIndex];
       document.getElementById("taskCounter").textContent = `Opgave ${currentTaskIndex + 1}/${tasks.length}`;
@@ -715,20 +832,30 @@
 
       const content = document.getElementById("taskContent");
 
-      if (task.type === "alphabet") {
-        renderAlphabetTask(content);
-      } else {
-        content.innerHTML = `
-          <div style="text-align: center; padding: 40px; color: var(--muted);">
-            <p style="font-size: 20px;">Denne opgave er endnu ikke tilgængelig</p>
-          </div>
-        `;
-        document.getElementById("taskStatus").textContent = "Ikke tilgængelig";
+      switch (task.type) {
+        case "trivia":
+          renderTriviaTask(content);
+          break;
+        case "emoji-songs":
+          renderEmojiSongsTask(content);
+          break;
+        case "roulette":
+          renderRouletteTask(content);
+          break;
+        case "most-likely":
+          renderMostLikelyTask(content);
+          break;
+        case "truth-or-drink":
+          renderTruthOrDrinkTask(content);
+          break;
+        default:
+          content.innerHTML = `
+            <div style="text-align: center; padding: 40px; color: var(--muted);">
+              <p style="font-size: 20px;">Denne opgave er endnu ikke tilgængelig</p>
+            </div>
+          `;
+          document.getElementById("taskStatus").textContent = "Ikke tilgængelig";
       }
-
-      // Update navigation buttons
-      document.getElementById("prevTaskBtn").disabled = currentTaskIndex === 0;
-      document.getElementById("nextTaskBtn").disabled = currentTaskIndex === tasks.length - 1;
     }
 
     function nextTask() {
@@ -745,121 +872,222 @@
       }
     }
 
-    // ===== ALPHABET TASK =====
+    // ===== TASK RENDERS =====
 
-    function renderAlphabetTask(container) {
+    // 1. TRIVIA TASK
+    function renderTriviaTask(container) {
+      const questions = [
+        { q: "Hvem i gruppen har drukket mest i år?", a: "" },
+        { q: "Hvem har kysset flest piger?", a: "" },
+        { q: "Hvem blev sidst inviteret til gruppen?", a: "" },
+        { q: "Hvem har den største sko-størrelse?", a: "" },
+        { q: "Hvem snorker højest?", a: "" }
+      ];
+
+      let currentQ = 0;
+
+      function render() {
+        container.innerHTML = `
+          <div style="text-align: center;">
+            <div style="font-size: 18px; color: var(--muted); margin-bottom: 20px;">
+              Spørgsmål ${currentQ + 1}/${questions.length}
+            </div>
+            <div style="font-size: 24px; font-weight: 600; margin-bottom: 30px; line-height: 1.4;">
+              ${questions[currentQ].q}
+            </div>
+            <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+              ${currentQ > 0 ? '<button class="btn" onclick="triviaGoBack()">← Forrige</button>' : ''}
+              ${currentQ < questions.length - 1 ? '<button class="btn primary" onclick="triviaNext()">Næste →</button>' : '<button class="btn primary" onclick="triviaFinish()">Færdig! ✓</button>'}
+            </div>
+          </div>
+        `;
+      }
+
+      window.triviaNext = () => { if (currentQ < questions.length - 1) { currentQ++; render(); } };
+      window.triviaGoBack = () => { if (currentQ > 0) { currentQ--; render(); } };
+      window.triviaFinish = () => {
+        container.innerHTML = '<div style="text-align: center; padding: 40px;"><div style="font-size: 32px; margin-bottom: 16px;">🎉</div><div style="font-size: 24px; font-weight: 600;">Godt klaret!</div></div>';
+        document.getElementById("taskStatus").textContent = "✅ Gennemført";
+      };
+
+      render();
+      document.getElementById("taskStatus").textContent = "I gang";
+    }
+
+    // 2. EMOJI SONGS TASK
+    function renderEmojiSongsTask(container) {
+      const songs = [
+        { emoji: "🌙☀️🌟", answer: "sol måne stjerner", title: "Sol, Måne, Stjerner" },
+        { emoji: "💃🕺🎵", answer: "dans", title: "Dans (nogen sang med dans)" },
+        { emoji: "❤️💔😢", answer: "hjertet", title: "(Noget med hjerte/kærlighed)" },
+        { emoji: "🎄🔔⛄", answer: "jul", title: "(Julehit)" },
+        { emoji: "👑💎✨", answer: "dronning", title: "(Noget med dronning/konge)" }
+      ];
+
+      let currentS = 0;
+      let revealed = false;
+
+      function render() {
+        container.innerHTML = `
+          <div style="text-align: center;">
+            <div style="font-size: 18px; color: var(--muted); margin-bottom: 20px;">
+              Sang ${currentS + 1}/${songs.length}
+            </div>
+            <div style="font-size: 64px; margin: 30px 0;">
+              ${songs[currentS].emoji}
+            </div>
+            <div style="font-size: 20px; margin: 20px 0; min-height: 60px; color: ${revealed ? 'var(--ok)' : 'var(--muted)'};">
+              ${revealed ? '🎵 ' + songs[currentS].title : 'Gæt sangen...'}
+            </div>
+            <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 30px;">
+              ${!revealed ? '<button class="btn" onclick="emojiReveal()">Vis svar</button>' : ''}
+              ${currentS < songs.length - 1 ? '<button class="btn primary" onclick="emojiNext()">Næste →</button>' : '<button class="btn primary" onclick="emojiFinish()">Færdig! ✓</button>'}
+            </div>
+          </div>
+        `;
+      }
+
+      window.emojiReveal = () => { revealed = true; render(); };
+      window.emojiNext = () => { if (currentS < songs.length - 1) { currentS++; revealed = false; render(); } };
+      window.emojiFinish = () => {
+        container.innerHTML = '<div style="text-align: center; padding: 40px;"><div style="font-size: 32px; margin-bottom: 16px;">🎵</div><div style="font-size: 24px; font-weight: 600;">Alle sange gennemgået!</div></div>';
+        document.getElementById("taskStatus").textContent = "✅ Gennemført";
+      };
+
+      render();
+      document.getElementById("taskStatus").textContent = "I gang";
+    }
+
+    // 3. ROULETTE TASK
+    function renderRouletteTask(container) {
+      let spinning = false;
+      let result = 0;
+
+      function spin() {
+        if (spinning) return;
+        spinning = true;
+
+        let spins = 0;
+        const maxSpins = 20;
+
+        const interval = setInterval(() => {
+          result = Math.floor(Math.random() * 6) + 1;
+          document.getElementById("rouletteNumber").textContent = result;
+          spins++;
+
+          if (spins >= maxSpins) {
+            clearInterval(interval);
+            spinning = false;
+            document.getElementById("rouletteResult").innerHTML = `
+              <div style="font-size: 20px; color: var(--accent); margin-top: 20px;">
+                ${result === 1 ? '💀 TAK 1 SHOT!' : result === 6 ? '🎉 FORDEL 2 SHOTS!' : '😅 Denne gang slap du!'}
+              </div>
+            `;
+          }
+        }, 100);
+      }
+
       container.innerHTML = `
-        <div class="timer" id="alphabetTimer">0.00s</div>
-        <input 
-          type="text" 
-          class="alphabet-input" 
-          id="alphabetInput" 
-          placeholder="Tryk for at starte - skriv alfabetet a-z..."
-          autocomplete="off"
-          spellcheck="false"
-        />
-        <div class="feedback" id="alphabetFeedback"></div>
         <div style="text-align: center;">
-          <button class="btn" onclick="resetAlphabetTask()">Prøv igen</button>
+          <div style="font-size: 120px; font-weight: 700; color: var(--accent); margin: 40px 0;" id="rouletteNumber">?</div>
+          <button class="btn primary" onclick="spinRoulette()" style="font-size: 18px; padding: 16px 32px;">🎲 Spin!</button>
+          <div id="rouletteResult"></div>
+          <div style="margin-top: 40px; font-size: 14px; color: var(--muted);">
+            1 = Tag 1 shot | 6 = Fordel 2 shots | Andet = Ingenting
+          </div>
         </div>
       `;
 
-      const input = document.getElementById("alphabetInput");
-      input.addEventListener("input", handleAlphabetInput);
-      input.addEventListener("focus", startAlphabetTimer);
-
-      alphabetCompleted = false;
-      document.getElementById("taskStatus").textContent = "Klar til start";
+      window.spinRoulette = spin;
+      document.getElementById("taskStatus").textContent = "Klar til spin";
     }
 
-    function startAlphabetTimer() {
-      if (alphabetTimer || alphabetCompleted) return;
+    // 4. MOST LIKELY TASK
+    function renderMostLikelyTask(container) {
+      const questions = [
+        "Hvem ville mest sandsynligt falde i søvn først til en fest?",
+        "Hvem ville mest sandsynligt overleve en zombie-apokalypse?",
+        "Hvem ville mest sandsynligt blive millionær?",
+        "Hvem ville mest sandsynligt ende i fængsel?",
+        "Hvem ville mest sandsynligt gifte sig først?",
+        "Hvem ville mest sandsynligt spise det væmmeligste?",
+        "Hvem ville mest sandsynligt blive berømt?",
+        "Hvem ville mest sandsynligt glemme deres egen fødselsdag?"
+      ];
 
-      alphabetStartTime = Date.now();
-      document.getElementById("taskStatus").textContent = "I gang!";
+      let currentQ = 0;
 
-      alphabetTimer = setInterval(() => {
-        alphabetElapsed = (Date.now() - alphabetStartTime) / 1000;
-        const timerEl = document.getElementById("alphabetTimer");
-        timerEl.textContent = alphabetElapsed.toFixed(2) + "s";
-
-        if (alphabetElapsed > tasks[currentTaskIndex].timeLimit) {
-          timerEl.classList.add("warning");
-        }
-      }, 10);
-    }
-
-    function handleAlphabetInput(e) {
-      if (alphabetCompleted) return;
-
-      const input = e.target;
-      const value = input.value.toLowerCase().replace(/[^a-z]/g, '');
-      input.value = value;
-
-      const expected = "abcdefghijklmnopqrstuvwxyz";
-      const feedback = document.getElementById("alphabetFeedback");
-
-      // Check if correct so far
-      if (value === expected.substring(0, value.length)) {
-        input.classList.remove("error");
-        input.classList.add("success");
-
-        // Check if complete
-        if (value === expected) {
-          completeAlphabetTask(true);
-        }
-      } else {
-        input.classList.add("error");
-        input.classList.remove("success");
-        feedback.className = "feedback bad";
-        feedback.textContent = "Forkert bogstav! Prøv igen.";
+      function render() {
+        container.innerHTML = `
+          <div style="text-align: center;">
+            <div style="font-size: 18px; color: var(--muted); margin-bottom: 20px;">
+              Spørgsmål ${currentQ + 1}/${questions.length}
+            </div>
+            <div style="font-size: 24px; font-weight: 600; margin: 40px 20px; line-height: 1.5;">
+              ${questions[currentQ]}
+            </div>
+            <div style="font-size: 16px; color: var(--muted); margin: 30px 0;">
+              Point på personen når I er klar!
+            </div>
+            <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 40px;">
+              ${currentQ < questions.length - 1 ? '<button class="btn primary" onclick="mostLikelyNext()">Næste →</button>' : '<button class="btn primary" onclick="mostLikelyFinish()">Færdig! ✓</button>'}
+            </div>
+          </div>
+        `;
       }
-    }
 
-    function completeAlphabetTask(success) {
-      if (alphabetCompleted) return;
-      alphabetCompleted = true;
-
-      clearInterval(alphabetTimer);
-      alphabetTimer = null;
-
-      const feedback = document.getElementById("alphabetFeedback");
-      const input = document.getElementById("alphabetInput");
-      const timeLimit = tasks[currentTaskIndex].timeLimit;
-
-      input.disabled = true;
-
-      if (success && alphabetElapsed <= timeLimit) {
-        feedback.className = "feedback ok";
-        feedback.textContent = `🎉 Tillykke! Du klarede det på ${alphabetElapsed.toFixed(2)} sekunder!`;
+      window.mostLikelyNext = () => { if (currentQ < questions.length - 1) { currentQ++; render(); } };
+      window.mostLikelyFinish = () => {
+        container.innerHTML = '<div style="text-align: center; padding: 40px;"><div style="font-size: 32px; margin-bottom: 16px;">👆</div><div style="font-size: 24px; font-weight: 600;">Alle spørgsmål gennemgået!</div></div>';
         document.getElementById("taskStatus").textContent = "✅ Gennemført";
-        document.getElementById("nextTaskBtn").disabled = false;
-      } else if (success) {
-        feedback.className = "feedback bad";
-        feedback.textContent = `⏰ Du brugte ${alphabetElapsed.toFixed(2)} sekunder - for langsomt! Prøv igen.`;
-        document.getElementById("taskStatus").textContent = "For langsom";
-      }
+      };
+
+      render();
+      document.getElementById("taskStatus").textContent = "I gang";
     }
 
-    function resetAlphabetTask() {
-      clearInterval(alphabetTimer);
-      alphabetTimer = null;
-      alphabetStartTime = null;
-      alphabetElapsed = 0;
-      alphabetCompleted = false;
+    // 5. TRUTH OR DRINK TASK
+    function renderTruthOrDrinkTask(container) {
+      const questions = [
+        "Hvad er det mest pinlige, du har gjort til en fest?",
+        "Hvem i rummet ville du kysse, hvis du skulle?",
+        "Hvad er din hemmelige guilty pleasure?",
+        "Hvad er det vildeste sted, du har haft sex?",
+        "Hvem var din første kæreste, og hvorfor sluttede det?",
+        "Hvad er den værste løgn, du har fortalt dine forældre?",
+        "Hvad er det mest ulovlige, du har gjort?",
+        "Hvis du kun kunne se én person her igen, hvem ville det være?"
+      ];
 
-      const input = document.getElementById("alphabetInput");
-      const timer = document.getElementById("alphabetTimer");
-      const feedback = document.getElementById("alphabetFeedback");
+      let currentQ = 0;
 
-      input.value = "";
-      input.disabled = false;
-      input.classList.remove("success", "error");
-      timer.textContent = "0.00s";
-      timer.classList.remove("warning");
-      feedback.textContent = "";
-      feedback.className = "feedback";
-      document.getElementById("taskStatus").textContent = "Klar til start";
+      function render() {
+        container.innerHTML = `
+          <div style="text-align: center;">
+            <div style="font-size: 18px; color: var(--muted); margin-bottom: 20px;">
+              Spørgsmål ${currentQ + 1}/${questions.length}
+            </div>
+            <div style="font-size: 24px; font-weight: 600; margin: 40px 20px; line-height: 1.5;">
+              ${questions[currentQ]}
+            </div>
+            <div style="font-size: 16px; color: var(--muted); margin: 30px 0;">
+              Besvar ærligt eller tag en stor slurk! 🍺
+            </div>
+            <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 40px;">
+              ${currentQ < questions.length - 1 ? '<button class="btn primary" onclick="truthNext()">Næste →</button>' : '<button class="btn primary" onclick="truthFinish()">Færdig! ✓</button>'}
+            </div>
+          </div>
+        `;
+      }
+
+      window.truthNext = () => { if (currentQ < questions.length - 1) { currentQ++; render(); } };
+      window.truthFinish = () => {
+        container.innerHTML = '<div style="text-align: center; padding: 40px;"><div style="font-size: 32px; margin-bottom: 16px;">🍻</div><div style="font-size: 24px; font-weight: 600;">I overlevede!</div></div>';
+        document.getElementById("taskStatus").textContent = "✅ Gennemført";
+      };
+
+      render();
+      document.getElementById("taskStatus").textContent = "I gang";
     }
 
     // ===== EVENT LISTENERS =====
@@ -885,7 +1113,7 @@
     // ===== INITIALIZE =====
     loadData();
     renderScoreboard();
-    renderTask();
+    renderTaskGrid();
   </script>
 </body>
 
