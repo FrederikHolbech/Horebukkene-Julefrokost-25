@@ -2091,11 +2091,11 @@
     // 16. WORD SCRAMBLE TASK
     function renderWordScrambleTask(container) {
       const words = [
-        { original: 'JULEFROKOST', scrambled: 'KOFULSRTEJT' },
-        { original: 'HOREBUKKENE', scrambled: 'KEBOKENHURE' },
-        { original: 'CHAMPAGNE', scrambled: 'HAMENACPIG' },
-        { original: 'FYSIOLOGI', scrambled: 'GIOYFILOS' },
-        { original: 'REAKTION', scrambled: 'NITOAKER' }
+        { original: 'JULEFROKOST', scrambled: 'UJOTRESOFKL' },
+        { original: 'HOREBUKKENE', scrambled: 'ERBENKKOHEU' },
+        { original: 'SIXSEVEN', scrambled: 'EINSVESX' },
+        { original: 'BANELEDDET', scrambled: 'TEDALENEBD' },
+        { original: 'HADERPERKERNE', scrambled: 'DRENKRPAHEERE' }
       ];
 
       let currentWord = 0;
@@ -2218,18 +2218,15 @@
       const riddles = [
         {
           question: 'Jeg har byer, men ingen huse. Jeg har skove, men ingen træer. Jeg har vand, men ingen fisk. Hvad er jeg?',
-          answer: 'KORT',
-          hint: 'Noget du bruger til navigation'
+          answer: 'KORT'
         },
         {
           question: 'Jo mere jeg tørrer, jo vådere bliver jeg. Hvad er jeg?',
-          answer: 'HÅNDKLÆDE',
-          hint: 'Noget du bruger efter et bad'
+          answer: 'HÅNDKLÆDE'
         },
         {
-          question: 'Hvad er så skørt at når du siger dets navn, så forsvinder det?',
-          answer: 'STILHED',
-          hint: 'Det modsatte af larm'
+          question: 'Hvad er det, der lever og bliver større, når du fodrer det, men dør hvis du giver det vand?',
+          answer: 'BÅL'
         }
       ];
 
@@ -2295,20 +2292,11 @@
                 "
                 onkeypress="if(event.key === 'Enter') riddleCheck()"
               />
-              
-              <div id="riddleHint" style="margin-top: 20px; font-size: 16px; color: var(--muted); min-height: 24px;">
-                
-              </div>
             </div>
             
-            <div style="display: flex; gap: 12px; justify-content: center;">
-              <button class="btn" onclick="riddleShowHint()" style="padding: 12px 24px;">
-                💡 Hint
-              </button>
-              <button class="btn primary" onclick="riddleCheck()" style="padding: 12px 24px;">
-                Tjek svar
-              </button>
-            </div>
+            <button class="btn primary" onclick="riddleCheck()" style="padding: 16px 40px; font-size: 20px;">
+              Tjek svar
+            </button>
             
             ${solved > 0 ? `
               <div style="margin-top: 30px; font-size: 18px; color: var(--ok);">
@@ -2323,15 +2311,6 @@
           if (input) input.focus();
         }, 100);
       }
-
-      window.riddleShowHint = () => {
-        const riddle = riddles[currentRiddle];
-        const hintDiv = document.getElementById('riddleHint');
-        if (hintDiv) {
-          hintDiv.textContent = `💡 Hint: ${riddle.hint}`;
-          hintDiv.style.color = 'var(--accent)';
-        }
-      };
 
       window.riddleCheck = () => {
         const input = document.getElementById('riddleGuess');
