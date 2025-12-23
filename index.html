@@ -731,6 +731,11 @@
         title: "Årstal Challenge - 10 Point",
         description: "Gæt hvilke år 5 begivenheder skete! 📅",
         type: "year-challenge"
+      },
+      {
+        title: "Vinterjakke Challenge - 15 Point",
+        description: "Tag 2 vinterjakker på resten af spillet! 🧥❄️",
+        type: "winter-jacket"
       }
     ];
 
@@ -1135,6 +1140,9 @@
           break;
         case "year-challenge":
           renderYearChallengeTask(content);
+          break;
+        case "winter-jacket":
+          renderWinterJacketTask(content);
           break;
         default:
           content.innerHTML = `
@@ -2065,6 +2073,86 @@
 
       render();
       document.getElementById("taskStatus").textContent = "Gæt årstallene";
+    }
+
+    // 20. WINTER JACKET CHALLENGE TASK
+    function renderWinterJacketTask(container) {
+      let verified = false;
+
+      function render() {
+        container.innerHTML = `
+          <div style="text-align: center;">
+            <div style="font-size: 28px; font-weight: 600; margin-bottom: 30px; line-height: 1.4;">
+              🧥 Vinterjakke Challenge ❄️
+            </div>
+            
+            <div style="font-size: 100px; margin: 40px 0;">
+              🧥🧥
+            </div>
+            
+            <div style="font-size: 20px; color: var(--text); margin: 30px 20px; line-height: 1.8; max-width: 600px; margin-left: auto; margin-right: auto;">
+              Tag <strong>2 vinterjakker</strong> på og behold dem på<br>
+              <strong>resten af spillet!</strong><br><br>
+              <span style="font-size: 16px; color: var(--muted);">
+                (Ja, det bliver varmt. Ja, det er hele pointen. 😅)
+              </span><br><br>
+              Værten bekræfter med PIN når jakkerne er på.
+            </div>
+            
+            ${!verified ? `
+              <div style="margin-top: 40px;">
+                <input 
+                  type="password" 
+                  id="jacketPin" 
+                  placeholder="Indtast PIN..." 
+                  style="width: 200px; padding: 16px; font-size: 18px; border: 2px solid var(--border); border-radius: 12px; background: var(--card); color: var(--text); text-align: center; margin-bottom: 12px;"
+                  onkeypress="if(event.key==='Enter'){event.preventDefault();verifyJacket();}"
+                >
+                <div id="jacketError" style="color: var(--bad); margin-top: 12px; min-height: 24px;"></div>
+                <button class="btn primary" onclick="verifyJacket()" style="margin-top: 20px;">✅ Bekræft jakker</button>
+              </div>
+            ` : `
+              <div style="margin-top: 40px;">
+                <div style="font-size: 28px; color: var(--ok); margin-bottom: 20px;">
+                  ✅ Bekræftet af vært!
+                </div>
+                <div style="font-size: 18px; color: var(--muted); margin-bottom: 20px;">
+                  Husk: Jakkerne skal blive på resten af spillet! 🥵
+                </div>
+                <button class="btn primary" onclick="jacketFinish()">Fortsæt →</button>
+              </div>
+            `}
+          </div>
+        `;
+        if (!verified) {
+          setTimeout(() => document.getElementById("jacketPin")?.focus(), 100);
+        }
+      }
+
+      window.verifyJacket = () => {
+        const input = document.getElementById("jacketPin")?.value || '';
+        const errorDiv = document.getElementById("jacketError");
+
+        if (input === PIN) {
+          verified = true;
+          render();
+        } else {
+          errorDiv.textContent = "Forkert PIN - prøv igen";
+          document.getElementById("jacketPin").value = "";
+          setTimeout(() => {
+            errorDiv.textContent = "";
+          }, 2000);
+        }
+      };
+
+      window.jacketFinish = () => {
+        container.innerHTML = '<div style="text-align: center; padding: 40px;"><div style="font-size: 48px; margin-bottom: 16px;">🧥❄️</div><div style="font-size: 24px; font-weight: 600;">Vinterjakke Challenge gennemført!</div><div style="font-size: 16px; color: var(--muted); margin-top: 12px;">Hold jakkerne på! 😅</div></div>';
+        document.getElementById("taskStatus").textContent = "✅ Gennemført";
+        completeTask(currentTaskIndex);
+      };
+
+      render();
+      document.getElementById("taskStatus").textContent = "Klar til jakker";
     }
 
     // 9. YATZY CHALLENGE TASK
