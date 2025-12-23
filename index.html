@@ -2048,7 +2048,7 @@
             else if (diff <= 10) hint = '🌡️ Tæt på!';
             else if (guess < event.year) hint = '⬆️ Højere!';
             else hint = '⬇️ Lavere!';
-            
+
             feedback.textContent = `${hint} (${maxAttempts - attempts} forsøg tilbage)`;
             feedback.style.color = 'var(--accent)';
             input.value = '';
