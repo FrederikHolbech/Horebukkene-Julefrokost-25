@@ -4041,18 +4041,18 @@
     // ===== TEAM PROGRESS TRACKER =====
     function updateTeamProgressTracker() {
       const progressEl = document.getElementById("teamProgress");
-      const teamData = [];
 
-      // Listen to Firebase for team progress
+      // Get current Firebase data
       const teamProgressRef = window.firebaseRef(window.firebaseDb, 'teamProgress');
-      window.firebaseOnValue(teamProgressRef, (snapshot) => {
+      const teamProgressSnapshot = window.firebaseOnValue(teamProgressRef, (snapshot) => {
         const firebaseData = snapshot.val() || {};
+        const teamData = [];
 
         // Get all teams and their completed tasks
         teams.forEach((team, index) => {
           const teamKey = `team_${index}`;
-          // Try Firebase first, then localStorage as fallback
-          const completedTaskIndices = firebaseData[teamKey] || JSON.parse(localStorage.getItem(`team_${index}_tasks`) || '[]');
+          // Use Firebase data only - no localStorage fallback to ensure sync
+          const completedTaskIndices = firebaseData[teamKey] || [];
 
           // Also check for shot roulette completion (still in localStorage for now)
           let shotRouletteCompleted = false;
