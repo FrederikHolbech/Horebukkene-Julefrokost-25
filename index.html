@@ -776,6 +776,8 @@
 
     // ===== SCOREBOARD FUNCTIONS =====
 
+    let teamsLoaded = false;
+
     // Initialize Firebase listeners
     function initializeFirebase() {
       // Listen for teams data changes
@@ -789,6 +791,14 @@
           window.firebaseSet(teamsRef, teams);
         }
         renderScoreboard();
+
+        // Mark teams as loaded and show selector if needed
+        if (!teamsLoaded) {
+          teamsLoaded = true;
+          if (localStorage.getItem("current_team_index") === null) {
+            showTeamSelector();
+          }
+        }
       });
 
       // Listen for completed tasks changes
@@ -4216,11 +4226,6 @@
         clearInterval(checkFirebase);
         initializeFirebase();
         console.log("Firebase initialized and syncing");
-
-        // Show team selector after Firebase is ready if not set
-        if (localStorage.getItem("current_team_index") === null) {
-          setTimeout(showTeamSelector, 1000);
-        }
       }
     }, 100);
   </script>
