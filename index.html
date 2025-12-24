@@ -1445,7 +1445,8 @@
         },
         {
           q: "Hvad er det normale pH-niveau i blodet?",
-          answer: "7.4",
+          answer: "7.4 eller 7.35",
+          acceptedAnswers: ["7.4", "7,4", "7.35", "7,35"],
           hint: ""
         }
       ];
@@ -1494,12 +1495,20 @@
 
       window.checkPhysioAnswer = () => {
         const guess = document.getElementById("physioAnswer")?.value.toLowerCase().trim() || '';
-        const answer = questions[currentQ].answer.toLowerCase().trim();
+        const currentQuestion = questions[currentQ];
 
-        console.log('Guess:', guess, 'Answer:', answer, 'Match:', guess === answer);
+        // Check if question has multiple accepted answers
+        let isCorrect = false;
+        if (currentQuestion.acceptedAnswers) {
+          isCorrect = currentQuestion.acceptedAnswers.some(ans => ans.toLowerCase().trim() === guess);
+        } else {
+          isCorrect = guess === currentQuestion.answer.toLowerCase().trim();
+        }
 
-        // Check if guess matches the answer exactly
-        if (guess === answer) {
+        console.log('Guess:', guess, 'Correct:', isCorrect);
+
+        // Check if guess matches the answer
+        if (isCorrect) {
           answered = true;
           render();
         } else {
