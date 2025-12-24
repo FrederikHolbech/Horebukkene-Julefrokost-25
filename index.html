@@ -4138,6 +4138,15 @@
       // Get current team if any
       const currentTeam = localStorage.getItem("current_team_index");
 
+      // Debug log
+      console.log("showTeamSelector called, teams:", teams);
+
+      // Make sure teams is defined and has items
+      if (!teams || teams.length === 0) {
+        console.error("Teams not loaded yet!");
+        return;
+      }
+
       selector.innerHTML = teams.map((team, index) => `
         <button 
           class="team-selector-btn ${currentTeam == index ? 'selected' : ''}" 
