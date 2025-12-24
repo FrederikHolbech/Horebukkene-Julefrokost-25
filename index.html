@@ -803,8 +803,16 @@
     }
 
     function loadData() {
-      // Firebase handles loading via listeners now
-      // Keep localStorage as fallback for device-specific data
+      // Load from localStorage as fallback
+      const saved = localStorage.getItem("scoreboardData");
+      if (saved) {
+        try {
+          teams = JSON.parse(saved);
+        } catch (e) {
+          console.error("Kunne ikke indlæse data");
+        }
+      }
+
       const savedTasks = localStorage.getItem("completedTasks");
       if (savedTasks) {
         try {
@@ -816,12 +824,18 @@
     }
 
     function saveData() {
-      // Save to Firebase instead of localStorage
-      const teamsRef = window.firebaseRef(window.firebaseDb, 'teams');
-      window.firebaseSet(teamsRef, teams);
+      // Save to localStorage first (always works)
+      localStorage.setItem("scoreboardData", JSON.stringify(teams));
+      localStorage.setItem("completedTasks", JSON.stringify(completedTasks));
 
-      const tasksRef = window.firebaseRef(window.firebaseDb, 'completedTasks');
-      window.firebaseSet(tasksRef, completedTasks);
+      // Also save to Firebase if available
+      if (window.firebaseDb && window.firebaseRef && window.firebaseSet) {
+        const teamsRef = window.firebaseRef(window.firebaseDb, 'teams');
+        window.firebaseSet(teamsRef, teams);
+
+        const tasksRef = window.firebaseRef(window.firebaseDb, 'completedTasks');
+        window.firebaseSet(tasksRef, completedTasks);
+      }
     }
 
     function renderScoreboard() {
@@ -4177,12 +4191,17 @@
     }
 
     // ===== INITIALIZE =====
-    initializeFirebase(); // Start Firebase listeners
+    // First render without Firebase
     loadData();
     renderScoreboard();
     renderTaskGrid();
     updateTeamProgressTracker();
     updateCurrentTeamDisplay();
+
+    // Then initialize Firebase if available
+    if (window.firebaseDb) {
+      initializeFirebase();
+    }
 
     // Show team selector on first load if not set
     if (localStorage.getItem("current_team_index") === null) {
