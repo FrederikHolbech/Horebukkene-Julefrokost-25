@@ -4222,19 +4222,22 @@
     }
 
     // ===== INITIALIZE =====
-    // First render without Firebase
-    loadData();
-    renderScoreboard();
-    renderTaskGrid();
-    updateTeamProgressTracker();
-    updateCurrentTeamDisplay();
 
-    // Wait for Firebase to be ready, then initialize
+    // Wait for Firebase to be ready first
     const checkFirebase = setInterval(() => {
       if (window.firebaseReady) {
         clearInterval(checkFirebase);
+        console.log("Firebase loaded, initializing app...");
+
+        // Now load data and initialize everything
+        loadData();
         initializeFirebase();
-        console.log("Firebase initialized and syncing");
+        renderScoreboard();
+        renderTaskGrid();
+        updateTeamProgressTracker();
+        updateCurrentTeamDisplay();
+
+        console.log("App initialized successfully");
       }
     }, 100);
   </script>
