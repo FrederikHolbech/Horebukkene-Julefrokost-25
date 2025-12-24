@@ -795,8 +795,12 @@
       const tasksRef = window.firebaseRef(window.firebaseDb, 'completedTasks');
       window.firebaseOnValue(tasksRef, (snapshot) => {
         const data = snapshot.val();
-        if (data) {
+        if (data && Array.isArray(data)) {
           completedTasks = data;
+        } else if (data === null || data === undefined || (Array.isArray(data) && data.length === 0)) {
+          // Data was cleared/reset
+          completedTasks = [];
+          localStorage.setItem("completedTasks", JSON.stringify([]));
         }
         renderTaskGrid();
       });
@@ -917,12 +921,14 @@
           }
           keysToRemove.forEach(key => localStorage.removeItem(key));
 
-          // Also clear from Firebase
-          const teamProgressRef = window.firebaseRef(window.firebaseDb, 'teamProgress');
-          window.firebaseRemove(teamProgressRef);
+          // Clear from Firebase - this will sync to all devices
+          if (window.firebaseDb && window.firebaseRef) {
+            const teamProgressRef = window.firebaseRef(window.firebaseDb, 'teamProgress');
+            window.firebaseSet(teamProgressRef, null); // Set to null to clear all children
 
-          const tasksRef = window.firebaseRef(window.firebaseDb, 'completedTasks');
-          window.firebaseSet(tasksRef, []);
+            const tasksRef = window.firebaseRef(window.firebaseDb, 'completedTasks');
+            window.firebaseSet(tasksRef, []);
+          }
 
           saveData();
           renderTaskGrid();
@@ -4210,13 +4216,13 @@
         clearInterval(checkFirebase);
         initializeFirebase();
         console.log("Firebase initialized and syncing");
+
+        // Show team selector after Firebase is ready if not set
+        if (localStorage.getItem("current_team_index") === null) {
+          setTimeout(showTeamSelector, 1000);
+        }
       }
     }, 100);
-
-    // Show team selector on first load if not set
-    if (localStorage.getItem("current_team_index") === null) {
-      setTimeout(showTeamSelector, 500);
-    }
   </script>
 </body>
 
