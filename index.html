@@ -778,8 +778,11 @@
         const data = snapshot.val();
         if (data) {
           teams = data;
-          renderScoreboard();
+        } else {
+          // If no data in Firebase, save initial teams
+          window.firebaseSet(teamsRef, teams);
         }
+        renderScoreboard();
       });
 
       // Listen for completed tasks changes
@@ -788,8 +791,8 @@
         const data = snapshot.val();
         if (data) {
           completedTasks = data;
-          renderTasksOverview();
         }
+        renderTaskGrid();
       });
 
       // Listen for team progress
