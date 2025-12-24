@@ -617,6 +617,35 @@
     </div>
   </div>
 
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, set, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyDtBKqaaB337y-EKx3GGRJcZJtvXl8QclU",
+      authDomain: "horebukkene-julefrokost-25.firebaseapp.com",
+      databaseURL: "https://horebukkene-julefrokost-25-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "horebukkene-julefrokost-25",
+      storageBucket: "horebukkene-julefrokost-25.firebasestorage.app",
+      messagingSenderId: "627729845542",
+      appId: "1:627729845542:web:4fe62fdaf938c706b645e7"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+
+    // Make Firebase functions available globally
+    window.firebaseDb = database;
+    window.firebaseRef = ref;
+    window.firebaseSet = set;
+    window.firebaseUpdate = update;
+    window.firebaseRemove = remove;
+    window.firebaseOnValue = onValue;
+  </script>
+
   <script>
     const PIN = "1202";
     let teams = [
@@ -741,15 +770,38 @@
 
     // ===== SCOREBOARD FUNCTIONS =====
 
-    function loadData() {
-      const saved = localStorage.getItem("scoreboardData");
-      if (saved) {
-        try {
-          teams = JSON.parse(saved);
-        } catch (e) {
-          console.error("Kunne ikke indlæse data");
+    // Initialize Firebase listeners
+    function initializeFirebase() {
+      // Listen for teams data changes
+      const teamsRef = window.firebaseRef(window.firebaseDb, 'teams');
+      window.firebaseOnValue(teamsRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+          teams = data;
+          renderScoreboard();
         }
-      }
+      });
+
+      // Listen for completed tasks changes
+      const tasksRef = window.firebaseRef(window.firebaseDb, 'completedTasks');
+      window.firebaseOnValue(tasksRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+          completedTasks = data;
+          renderTasksOverview();
+        }
+      });
+
+      // Listen for team progress
+      const progressRef = window.firebaseRef(window.firebaseDb, 'teamProgress');
+      window.firebaseOnValue(progressRef, (snapshot) => {
+        updateTeamProgressTracker();
+      });
+    }
+
+    function loadData() {
+      // Firebase handles loading via listeners now
+      // Keep localStorage as fallback for device-specific data
       const savedTasks = localStorage.getItem("completedTasks");
       if (savedTasks) {
         try {
@@ -761,8 +813,12 @@
     }
 
     function saveData() {
-      localStorage.setItem("scoreboardData", JSON.stringify(teams));
-      localStorage.setItem("completedTasks", JSON.stringify(completedTasks));
+      // Save to Firebase instead of localStorage
+      const teamsRef = window.firebaseRef(window.firebaseDb, 'teams');
+      window.firebaseSet(teamsRef, teams);
+
+      const tasksRef = window.firebaseRef(window.firebaseDb, 'completedTasks');
+      window.firebaseSet(tasksRef, completedTasks);
     }
 
     function renderScoreboard() {
@@ -823,7 +879,7 @@
         if (confirm("Er du sikker på at du vil nulstille alle opgaver?")) {
           completedTasks = [];
 
-          // Clear all team task tracking
+          // Clear all team task tracking from localStorage
           teams.forEach((team, index) => {
             localStorage.removeItem(`team_${index}_tasks`);
           });
@@ -837,6 +893,13 @@
             }
           }
           keysToRemove.forEach(key => localStorage.removeItem(key));
+
+          // Also clear from Firebase
+          const teamProgressRef = window.firebaseRef(window.firebaseDb, 'teamProgress');
+          window.firebaseRemove(teamProgressRef);
+
+          const tasksRef = window.firebaseRef(window.firebaseDb, 'completedTasks');
+          window.firebaseSet(tasksRef, []);
 
           saveData();
           renderTaskGrid();
@@ -1065,6 +1128,10 @@
           if (!teamTasks.includes(taskIndex)) {
             teamTasks.push(taskIndex);
             localStorage.setItem(teamTasksKey, JSON.stringify(teamTasks));
+
+            // Also save to Firebase
+            const teamProgressRef = window.firebaseRef(window.firebaseDb, `teamProgress/team_${currentTeam}`);
+            window.firebaseSet(teamProgressRef, teamTasks);
           }
         }
 
@@ -3937,79 +4004,86 @@
       const progressEl = document.getElementById("teamProgress");
       const teamData = [];
 
-      // Get all teams and their completed tasks
-      teams.forEach((team, index) => {
-        const teamTasksKey = `team_${index}_tasks`;
-        const completedTaskIndices = JSON.parse(localStorage.getItem(teamTasksKey) || '[]');
+      // Listen to Firebase for team progress
+      const teamProgressRef = window.firebaseRef(window.firebaseDb, 'teamProgress');
+      window.firebaseOnValue(teamProgressRef, (snapshot) => {
+        const firebaseData = snapshot.val() || {};
 
-        // Also check for shot roulette completion
-        let shotRouletteCompleted = false;
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key && key.startsWith("shot_played_")) {
-            const deviceId = key.replace("shot_played_", "");
-            const teamKey = `device_team_${deviceId}`;
-            const deviceTeamIndex = localStorage.getItem(teamKey);
-            if (deviceTeamIndex == index && localStorage.getItem(key) === "true") {
-              shotRouletteCompleted = true;
-              break;
+        // Get all teams and their completed tasks
+        teams.forEach((team, index) => {
+          const teamKey = `team_${index}`;
+          // Try Firebase first, then localStorage as fallback
+          const completedTaskIndices = firebaseData[teamKey] || JSON.parse(localStorage.getItem(`team_${index}_tasks`) || '[]');
+
+          // Also check for shot roulette completion (still in localStorage for now)
+          let shotRouletteCompleted = false;
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith("shot_played_")) {
+              const deviceId = key.replace("shot_played_", "");
+              const deviceTeamKey = `device_team_${deviceId}`;
+              const deviceTeamIndex = localStorage.getItem(deviceTeamKey);
+              if (deviceTeamIndex == index && localStorage.getItem(key) === "true") {
+                shotRouletteCompleted = true;
+                break;
+              }
             }
           }
-        }
 
-        if (completedTaskIndices.length > 0 || shotRouletteCompleted) {
-          teamData.push({
-            name: team.name,
-            index: index,
-            completedTasks: completedTaskIndices,
-            shotRouletteCompleted: shotRouletteCompleted
-          });
-        }
-      });
-
-      if (teamData.length === 0) {
-        progressEl.innerHTML = `
-          <div style="text-align: center; color: var(--muted); font-size: 13px; padding: 20px 0;">
-            Ingen opgaver gennemført endnu
-          </div>
-        `;
-      } else {
-        progressEl.innerHTML = teamData.map(team => {
-          const allTasks = [...team.completedTasks];
-
-          // Find shot roulette task index
-          const shotRouletteIndex = tasks.findIndex(t => t.type === 'shot-roulette');
-          if (team.shotRouletteCompleted && shotRouletteIndex !== -1 && !allTasks.includes(shotRouletteIndex)) {
-            allTasks.push(shotRouletteIndex);
+          if (completedTaskIndices.length > 0 || shotRouletteCompleted) {
+            teamData.push({
+              name: team.name,
+              index: index,
+              completedTasks: completedTaskIndices,
+              shotRouletteCompleted: shotRouletteCompleted
+            });
           }
+        });
 
-          const totalTasks = allTasks.length;
-
-          return `
-            <div class="team-progress-item">
-              <div class="team-progress-name">${team.name}</div>
-              <div class="task-list">
-                ${allTasks.map(taskIndex => {
-            const task = tasks[taskIndex];
-            if (!task) return '';
-            // Extract points from title
-            const pointsMatch = task.title.match(/(\d+)\s*Point/);
-            const points = pointsMatch ? pointsMatch[1] : '?';
-            return `
-                    <div class="task-list-item completed">
-                      <span>✅</span>
-                      <span>${task.title.split(' - ')[0]} (${points}p)</span>
-                    </div>
-                  `;
-          }).join('')}
-              </div>
-              <div class="task-count">
-                ${totalTasks} opgave${totalTasks !== 1 ? 'r' : ''} gennemført
-              </div>
+        if (teamData.length === 0) {
+          progressEl.innerHTML = `
+            <div style="text-align: center; color: var(--muted); font-size: 13px; padding: 20px 0;">
+              Ingen opgaver gennemført endnu
             </div>
           `;
-        }).join('');
-      }
+        } else {
+          progressEl.innerHTML = teamData.map(team => {
+            const allTasks = [...team.completedTasks];
+
+            // Find shot roulette task index
+            const shotRouletteIndex = tasks.findIndex(t => t.type === 'shot-roulette');
+            if (team.shotRouletteCompleted && shotRouletteIndex !== -1 && !allTasks.includes(shotRouletteIndex)) {
+              allTasks.push(shotRouletteIndex);
+            }
+
+            const totalTasks = allTasks.length;
+
+            return `
+              <div class="team-progress-item">
+                <div class="team-progress-name">${team.name}</div>
+                <div class="task-list">
+                  ${allTasks.map(taskIndex => {
+              const task = tasks[taskIndex];
+              if (!task) return '';
+              // Extract points from title
+              const pointsMatch = task.title.match(/(\d+)\s*Point/);
+              const points = pointsMatch ? pointsMatch[1] : '?';
+              return `
+                      <div class="task-list-item completed">
+                        <span>✅</span>
+                        <span>${task.title.split(' - ')[0]} (${points}p)</span>
+                      </div>
+                    `;
+            }).join('')}
+                </div>
+                <div class="task-count">
+                  ${totalTasks} opgave${totalTasks !== 1 ? 'r' : ''} gennemført
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
+      }, { onlyOnce: false }); // Listen continuously
     }
 
     // Compatibility function name
@@ -4100,6 +4174,7 @@
     }
 
     // ===== INITIALIZE =====
+    initializeFirebase(); // Start Firebase listeners
     loadData();
     renderScoreboard();
     renderTaskGrid();
