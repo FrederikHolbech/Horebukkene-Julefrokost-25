@@ -644,6 +644,12 @@
     window.firebaseUpdate = update;
     window.firebaseRemove = remove;
     window.firebaseOnValue = onValue;
+    window.firebaseReady = true;
+
+    // Trigger Firebase initialization when ready
+    if (window.initializeFirebase) {
+      window.initializeFirebase();
+    }
   </script>
 
   <script>
@@ -4198,10 +4204,14 @@
     updateTeamProgressTracker();
     updateCurrentTeamDisplay();
 
-    // Then initialize Firebase if available
-    if (window.firebaseDb) {
-      initializeFirebase();
-    }
+    // Wait for Firebase to be ready, then initialize
+    const checkFirebase = setInterval(() => {
+      if (window.firebaseReady) {
+        clearInterval(checkFirebase);
+        initializeFirebase();
+        console.log("Firebase initialized and syncing");
+      }
+    }, 100);
 
     // Show team selector on first load if not set
     if (localStorage.getItem("current_team_index") === null) {
