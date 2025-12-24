@@ -818,7 +818,8 @@
       // Listen for team progress
       const progressRef = window.firebaseRef(window.firebaseDb, 'teamProgress');
       window.firebaseOnValue(progressRef, (snapshot) => {
-        updateTeamProgressTracker();
+        const data = snapshot.val() || {};
+        updateTeamProgressTracker(data);
       });
     }
 
@@ -4039,90 +4040,84 @@
     });
 
     // ===== TEAM PROGRESS TRACKER =====
-    function updateTeamProgressTracker() {
+    function updateTeamProgressTracker(firebaseData = {}) {
       const progressEl = document.getElementById("teamProgress");
+      const teamData = [];
 
-      // Get current Firebase data
-      const teamProgressRef = window.firebaseRef(window.firebaseDb, 'teamProgress');
-      const teamProgressSnapshot = window.firebaseOnValue(teamProgressRef, (snapshot) => {
-        const firebaseData = snapshot.val() || {};
-        const teamData = [];
+      // Get all teams and their completed tasks
+      teams.forEach((team, index) => {
+        const teamKey = `team_${index}`;
+        // Use Firebase data only - no localStorage fallback to ensure sync
+        const completedTaskIndices = firebaseData[teamKey] || [];
 
-        // Get all teams and their completed tasks
-        teams.forEach((team, index) => {
-          const teamKey = `team_${index}`;
-          // Use Firebase data only - no localStorage fallback to ensure sync
-          const completedTaskIndices = firebaseData[teamKey] || [];
-
-          // Also check for shot roulette completion (still in localStorage for now)
-          let shotRouletteCompleted = false;
-          for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key && key.startsWith("shot_played_")) {
-              const deviceId = key.replace("shot_played_", "");
-              const deviceTeamKey = `device_team_${deviceId}`;
-              const deviceTeamIndex = localStorage.getItem(deviceTeamKey);
-              if (deviceTeamIndex == index && localStorage.getItem(key) === "true") {
-                shotRouletteCompleted = true;
-                break;
-              }
+        // Also check for shot roulette completion (still in localStorage for now)
+        let shotRouletteCompleted = false;
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith("shot_played_")) {
+            const deviceId = key.replace("shot_played_", "");
+            const deviceTeamKey = `device_team_${deviceId}`;
+            const deviceTeamIndex = localStorage.getItem(deviceTeamKey);
+            if (deviceTeamIndex == index && localStorage.getItem(key) === "true") {
+              shotRouletteCompleted = true;
+              break;
             }
           }
+        }
 
-          if (completedTaskIndices.length > 0 || shotRouletteCompleted) {
-            teamData.push({
-              name: team.name,
-              index: index,
-              completedTasks: completedTaskIndices,
-              shotRouletteCompleted: shotRouletteCompleted
-            });
-          }
-        });
+        if (completedTaskIndices.length > 0 || shotRouletteCompleted) {
+          teamData.push({
+            name: team.name,
+            index: index,
+            completedTasks: completedTaskIndices,
+            shotRouletteCompleted: shotRouletteCompleted
+          });
+        }
+      });
 
-        if (teamData.length === 0) {
-          progressEl.innerHTML = `
+      if (teamData.length === 0) {
+        progressEl.innerHTML = `
             <div style="text-align: center; color: var(--muted); font-size: 13px; padding: 20px 0;">
               Ingen opgaver gennemført endnu
             </div>
           `;
-        } else {
-          progressEl.innerHTML = teamData.map(team => {
-            const allTasks = [...team.completedTasks];
+      } else {
+        progressEl.innerHTML = teamData.map(team => {
+          const allTasks = [...team.completedTasks];
 
-            // Find shot roulette task index
-            const shotRouletteIndex = tasks.findIndex(t => t.type === 'shot-roulette');
-            if (team.shotRouletteCompleted && shotRouletteIndex !== -1 && !allTasks.includes(shotRouletteIndex)) {
-              allTasks.push(shotRouletteIndex);
-            }
+          // Find shot roulette task index
+          const shotRouletteIndex = tasks.findIndex(t => t.type === 'shot-roulette');
+          if (team.shotRouletteCompleted && shotRouletteIndex !== -1 && !allTasks.includes(shotRouletteIndex)) {
+            allTasks.push(shotRouletteIndex);
+          }
 
-            const totalTasks = allTasks.length;
+          const totalTasks = allTasks.length;
 
-            return `
+          return `
               <div class="team-progress-item">
                 <div class="team-progress-name">${team.name}</div>
                 <div class="task-list">
                   ${allTasks.map(taskIndex => {
-              const task = tasks[taskIndex];
-              if (!task) return '';
-              // Extract points from title
-              const pointsMatch = task.title.match(/(\d+)\s*Point/);
-              const points = pointsMatch ? pointsMatch[1] : '?';
-              return `
+            const task = tasks[taskIndex];
+            if (!task) return '';
+            // Extract points from title
+            const pointsMatch = task.title.match(/(\d+)\s*Point/);
+            const points = pointsMatch ? pointsMatch[1] : '?';
+            return `
                       <div class="task-list-item completed">
                         <span>✅</span>
                         <span>${task.title.split(' - ')[0]} (${points}p)</span>
                       </div>
                     `;
-            }).join('')}
+          }).join('')}
                 </div>
                 <div class="task-count">
                   ${totalTasks} opgave${totalTasks !== 1 ? 'r' : ''} gennemført
                 </div>
               </div>
             `;
-          }).join('');
-        }
-      }, { onlyOnce: false }); // Listen continuously
+        }).join('');
+      }
     }
 
     // Compatibility function name
